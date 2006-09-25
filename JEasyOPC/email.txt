@@ -1,0 +1,48 @@
+ Hi!
+
+ I thought of a couple of features I miss in the version I use.
+ The necessary modifications in Java aren't a big deal for me, but I can't modify the delphi component.
+ Please try to make up your mind to each point: is it possible, how much time do you need, is it clever or not, etc.
+ Finally you tell me how much money you think  the tasks are worth. I will then ask my boss wether he will give it a go or not.
+
+ Here are the features requests, please ask wether if something is unclear or not prcaticable:
+ 
+        - Write:
+        I need the possibility of writing back bools, integers, possibly strings to opc items.
+        I have little Idea of technical details, but I know that there is such a interface, just like reading
+        
+        -synchronous processing:
+        At the moment I can only send asynchronous requests down to delphi (add server,
+        add item to server, read item and so on). when something goes wrong, like adding a item which is not available in a server,
+        I just get null pointers when trying to read the items. There is this IConnectionCallbackBontainer,
+        which shows up in the log, if I could just listen there or get a return value like true or false, I'd be very happy :)
+        
+        -exceptions:
+        depends on synchronous processing, when calling operations I'd prefer try catch blocks instead of
+        catching null pointers lateron. If not
+        
+        alternative: return value of a certain String as a return code or int?
+        
+        -logging:
+        at the moment the delphi component uses a Report class. That's fine, but I can't define the format of the log,
+        the level. is it possible to call java methods from delphi? so I could think of an interface like
+        
+        public interface ILog {
+          void log(String message, String level);
+        }
+
+        -Ping: I want to check if the opc server is still alive
+
+
+ tell me what you think...
+
+ mit freundlichen Grüßen
+ Stefan Bungert
+
+ Plecto AG
+ Kampenwandstr. 90
+ 83229 Aschau
+
+ Tel.: +49 (0) 8052-95 732-0
+ Fax:  +49 (0) 8052-95 732-22
+ Web:  www.plecto.com 
