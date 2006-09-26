@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import javafish.clients.opc.browser.JOPCBrowser;
 import javafish.clients.opc.exception.HostException;
-import javafish.clients.opc.exception.NotFoundServers;
+import javafish.clients.opc.exception.NotFoundServersException;
 
 public class OPCTest {
 
@@ -23,7 +23,7 @@ public class OPCTest {
     catch (HostException e) {
       e.printStackTrace();
     }
-    catch (NotFoundServers e) {
+    catch (NotFoundServersException e) {
       e.printStackTrace();
     }
   }

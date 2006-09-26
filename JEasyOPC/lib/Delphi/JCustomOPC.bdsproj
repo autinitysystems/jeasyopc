@@ -126,11 +126,11 @@
 			<Directories Name="UsePackages">False</Directories>
 		</Directories>
 		<Parameters>
-			<Parameters Name="RunParams"></Parameters>
-			<Parameters Name="HostApplication"></Parameters>
+			<Parameters Name="RunParams">-cp classes;lib/log4j-1.2.13.jar javafish.clients.opc.BrowserTest1</Parameters>
+			<Parameters Name="HostApplication">K:\java\jdk-installed\jdk1.5.0_07\bin\java.exe</Parameters>
 			<Parameters Name="Launcher"></Parameters>
 			<Parameters Name="UseLauncher">False</Parameters>
-			<Parameters Name="DebugCWD"></Parameters>
+			<Parameters Name="DebugCWD">K:\work\workspace\workspace-gk\JEasyOPC</Parameters>
 			<Parameters Name="RemoteHost"></Parameters>
 			<Parameters Name="RemotePath"></Parameters>
 			<Parameters Name="RemoteLauncher"></Parameters>

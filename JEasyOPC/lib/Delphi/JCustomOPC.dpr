@@ -32,7 +32,9 @@ const
   // java exceptions definition
   SConnectivityException = EXCPKG + 'ConnectivityException';
   SHostException = EXCPKG + 'HostException';
-  SNotFoundServers = EXCPKG + 'NotFoundServers';
+  SNotFoundServersException = EXCPKG + 'NotFoundServersException';
+  SUnableIBrowseException = EXCPKG + 'UnableIBrowseException';
+  SUnableBrowseBranchException = EXCPKG + 'UnableBrowseBranchException';
 
   // java JCustomOPC classes => Delphi class representations
   JCustomOPC_ClassName = 'javafish.clients.opc.JCustomOPC';
@@ -186,9 +188,9 @@ begin
       Lists.free; // free memory
     except
       on E:HostException do
-        throwException(PEnv, SHostException, '');
-      on E:NotFoundServers do
-        throwException(PEnv, SNotFoundServers, '');
+        throwException(PEnv, SHostException, PAnsiChar(E.Message));
+      on E:NotFoundServersException do
+        throwException(PEnv, SNotFoundServersException, PAnsiChar(E.Message));
     end;
   finally
     JVM.free;
@@ -196,8 +198,52 @@ begin
   end;
 end;
 
-//-------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
+function Java_javafish_clients_opc_browser_JOPCBrowser_getOPCBranch(PEnv: PJNIEnv;
+  Obj: JObject; branch : JString) : JObjectArray; stdcall;
+var
+  ClsItem : JClass;
+  JVM     : TJNIEnv;
+  JOArray : JObjectArray;
+  count   : integer;
+  I       : integer;
+  lists   : TStringList;
+begin
+  Result := nil;
+  // Create an instance of the Java environment
+  JVM := TJNIEnv.Create(PEnv);
+  try
+    try
+      lists := TBrowser(aopc[GetInt(ID, PEnv, Obj)]).getOPCBranch(JVM.JStringToString(branch));
+
+      if lists <> nil
+      then begin // transform to string array
+        count := lists.Count;
+
+        // Allocate the array of Strings
+        ClsItem := JVM.FindClass('java/lang/String');
+        JOArray := JVM.NewObjectArray(count, ClsItem, nil);
+
+        // Now initialize each OPC Server name
+        for I:=0 to count-1 do
+          JVM.SetObjectArrayElement(JOArray, I, JVM.StringToJString(PAnsiChar(lists[I])));
+
+        // Return group to java
+        Result := JOArray;
+        lists.Free;
+      end;
+
+    except
+      on E:UnableBrowseBranchException do
+        throwException(PEnv, SUnableBrowseBranchException, PAnsiChar(E.Message));
+      on E:UnableIBrowseException do
+        throwException(PEnv, SUnableIBrowseException, PAnsiChar(E.Message));
+    end;
+  finally
+    JVM.Free;
+  end;
+end;
 
 //------------------------------------------------------------------------------
 //!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -495,43 +541,6 @@ end;
 //------------------------------------------------------------------------------
 //----------------------------- BROWSER METHODS --------------------------------
 
-function Java_javafish_clients_opc_JCustomOPC_getOPCBranch(PEnv: PJNIEnv; Obj: JObject;
-  host : JString; server : JString; branch : JString) : JObjectArray; stdcall;
-var
-  ClsItem : JClass;
-  JVM     : TJNIEnv;
-  JOArray : JObjectArray;
-  count   : integer;
-  I       : integer;
-  lists   : TStringList;
-begin
-  Result := nil;
-
-  // Create an instance of the Java environment
-  JVM := TJNIEnv.Create(PEnv);
-
-  //lists := abrowser[GetInt(ID, PEnv, Obj)].getOPCBranch(JVM.JStringToString(branch));
-  if lists <> nil
-  then begin
-    count := lists.Count;
-
-    // Allocate the array of Strings
-    ClsItem := JVM.FindClass('java/lang/String');
-    JOArray := JVM.NewObjectArray(count, ClsItem, nil);
-
-    // Now initialize each OPC Server name
-    for I:=0 to count-1 do
-      JVM.SetObjectArrayElement(JOArray, I, JVM.StringToJString(PAnsiChar(lists[I])));
-
-    // Return group to java
-    Result := JOArray;
-    lists.Free;
-  end;
-
-  JVM.Free;
-end;
-
-//-------------------------------------------------------------------------------
 
 function Java_javafish_clients_opc_JCustomOPC_getOPCItems(PEnv: PJNIEnv; Obj: JObject;
   host : JString; server : JString; leaf: JString; download : JBoolean) : JObjectArray; stdcall;
@@ -588,7 +597,6 @@ exports
   Java_javafish_clients_opc_JCustomOPC_getReport,
   Java_javafish_clients_opc_JCustomOPC_pauseClient,
   Java_javafish_clients_opc_JCustomOPC_playClient,
-  Java_javafish_clients_opc_JCustomOPC_getOPCBranch,
   Java_javafish_clients_opc_JCustomOPC_getOPCItems,
 
   // new methods
@@ -597,7 +605,10 @@ exports
   Java_javafish_clients_opc_JCustomOPC_connectServer,
   Java_javafish_clients_opc_JCustomOPC_disconnectServer,
   Java_javafish_clients_opc_JCustomOPC_getStatus,
+
   // JOPCBrowser methods
-  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCServers;
+  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCServers,
+  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCBranch;
+
 begin
 end.

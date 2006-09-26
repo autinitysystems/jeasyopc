@@ -7,9 +7,11 @@ uses
 
 type
   // Global exceptions
-  ConnectivityException = class(Exception); // error connection
-  HostException = class(Exception);         // no host found
-  NotFoundServers = class(Exception);       // no opc servers found
+  ConnectivityException = class(Exception);       // error connection
+  HostException = class(Exception);               // no host found
+  NotFoundServersException = class(Exception);    // no opc servers found
+  UnableIBrowseException = class(Exception);      // IBrowse not initialize
+  UnableBrowseBranchException = class(Exception); // browse branch error
 
 
   ///////////////////////////////
@@ -17,7 +19,7 @@ type
   // OPC Client library        //
   ///////////////////////////////
   TCustomOPC = class
-  private
+  protected
     host               : string;           // network host
     serverProgID       : string;           // OPC server name: ProgID
     serverClientHandle : string;           // OPC Client Handle
@@ -34,7 +36,7 @@ type
     // get logger
     function getReport : TReport;
     // connect to server
-    procedure connect;
+    procedure connect; virtual;
     // disconnect server
     procedure disconnect;
     // get server status

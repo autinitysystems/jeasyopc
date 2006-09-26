@@ -86,15 +86,9 @@ public class PropertyLoader {
       props = null;
     }
     finally {
-      if (in != null) {
-        try {
-          in.close();
-        }
-        catch (IOException e) {
-          System.err.print("Property file " + propsName + " don't exist. System terminated.");
-          e.printStackTrace();
-          System.exit(0);
-        }
+      if (props == null) {
+        System.err.print("Property file " + propsName + " doesn't exist. System terminated.");
+        System.exit(0);
       }
     }
 

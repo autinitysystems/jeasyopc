@@ -45,7 +45,7 @@ public class JCustomOPC implements OPCReportListener {
   protected final Logger logger = Logger.getLogger(getClass());
   
   /** properties file */
-  protected Properties props = PropertyLoader.loadProperties(getClass());
+  protected Properties props = PropertyLoader.loadProperties(JCustomOPC.class);
 
   /** report guardian */
   protected OPCReportGuardian report;
