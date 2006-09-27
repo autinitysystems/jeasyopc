@@ -4,19 +4,22 @@ interface
 
 uses
   Classes, SysUtils, ActiveX, IdIcmpClient, UCustomOPC, OPCEnum, OPCDA,
-  OPCutils, Windows;
+  OPCutils, Windows, OPCtypes;
 
 const
   WAITIME = 300;
 
   // exceptions text
   UnableBrowseBranchExceptionText = 'Unable to browse a branch.';
+  UnableBrowseLeafExceptionText = 'Unable to browse a leaf (item).';
   UnableIBrowseExceptionText = 'Unable to initialize IBrowse.';
   ConnectivityExceptionText = 'Browser initialization error.';
   HostExceptionText = 'Host not found: ';
   NotFoundServersExceptionText = 'OPC servers not found on ';
 
 type
+  PTStringList = ^TStringList;
+
   // Browser methods
   TBrowser = class(TCustomOPC)
   private
@@ -24,6 +27,9 @@ type
     HR           : HResult;
     Browse       : IOPCBrowseServerAddressSpace;
     SpaceType    : OPCNAMESPACETYPE;
+    // show item value, if download is true
+    function ShowValues(Path : string; PVarList: PTStringList;
+      download : boolean) : TStringList;
   public
     // connect to server
     procedure connect; override;
@@ -31,7 +37,8 @@ type
     function findOPCServers(host : string) : TStringList;
     // get branch by its name (list part of the opc tree browser)
     function getOPCBranch(branch: string) : TStringList;
-
+    // get item of a leaf, if download is true, you get a actual value of item
+    function getOPCItems(leaf: string; download : boolean): TStringList;
   end;
 
 implementation
@@ -52,6 +59,8 @@ begin
       raise ConnectivityException.Create(ConnectivityExceptionText);
   end;
 end;
+
+//------------------------------------------------------------------------------
 
 function TBrowser.findOPCServers(host : string) : TStringList;
 var
@@ -94,6 +103,8 @@ begin
   then raise NotFoundServersException.create(NotFoundServersExceptionText + host);
 end;
 
+//------------------------------------------------------------------------------
+
 function TBrowser.getOPCBranch(branch: string) : TStringList;
 var
   IES     : IEnumString;
@@ -133,6 +144,124 @@ begin
   else raise UnableIBrowseException.create(UnableIBrowseExceptionText);
 end;
 
+//------------------------------------------------------------------------------
 
+function TBrowser.getOPCItems(leaf: string; download : boolean): TStringList;
+var
+  IES     : IEnumString;
+  Pattern : POleStr;
+  Fetched : UInt;
+  PVarList: PTStringList;
+begin
+  Result := nil;
+  if Browse <> nil then
+  begin
+    HR := ChangePosTo(Browse, leaf);
+
+    if Succeeded(HR)
+    then begin
+      // Read opc-items
+      New(PVarList);
+      PVarList^ := TStringList.Create;
+      if SpaceType = OPC_NS_HIERARCHIAL
+      then HR := Browse.BrowseOPCItemIDs(OPC_LEAF, StringToOleStr('*'),
+                                          VT_EMPTY, OPC_READABLE, IES)
+      else HR := Browse.BrowseOPCItemIDs(OPC_FLAT, StringToOleStr('*'),
+                                          VT_EMPTY, OPC_READABLE, IES);
+      if Succeeded(HR)
+      then begin
+        while Succeeded(IES.Next(1, Pattern, @Fetched)) and (Fetched = 1) do
+          PVarList^.Add(Pattern);
+        Result := ShowValues(leaf, PVarList, download);
+      end
+      else raise UnableBrowseLeafException.create(UnableBrowseLeafExceptionText);
+    end
+    else raise UnableBrowseLeafException.create(UnableBrowseLeafExceptionText);
+  end
+  else raise UnableIBrowseException.create(UnableIBrowseExceptionText);
+end;
+
+//------------------------------------------------------------------------------
+
+function TBrowser.ShowValues(Path : string; PVarList: PTStringList;
+  download : boolean) : TStringList;
+var
+  ItemName    : POleStr;
+  ItemHandle  : OPCHANDLE;
+  ItemType    : TVarType;
+  ItemValue   : string;
+  ItemQuality : Word;
+  GroupIf     : IOPCItemMgt;
+  GroupHandle : OPCHANDLE;
+  IHandles    : array of OPCHANDLE;
+  i           : integer;
+  val         : string;
+begin
+  Result := nil;
+  // Define opc-group
+  HR := ServerAddGroup(ServerIf, 'GroupTemp', True, 500, 0, GroupIf, GroupHandle);
+  if not Succeeded(HR)
+  then raise UnableAddGroupException.Create('Unable to add group to server: GroupTemp');
+
+  // Find path of opc-items
+  Result := TStringList.Create;
+  SetLength(IHandles, PTStringList(PVarList)^.Count);
+
+  for i:=0 to PTStringList(PVarList)^.Count-1 do begin
+    HR := Browse.GetItemID(StringToOleStr(PTStringList(PVarList)^.Strings[i]), ItemName);
+    // estimate path
+    if not Succeeded(HR) then ItemName := StringToOleStr(Path + '.' +
+                                          PTStringList(PVarList)^.Strings[i]);
+    // get opc-item to group, get ItemType and ItemHandle
+    HR := GroupAddItem(GroupIf, ItemName, 0, VT_EMPTY, ItemHandle, ItemType);
+
+    if not Succeeded(HR)
+    then begin
+      // end downloading leaf
+      raise UnableAddItemException.create('Unable to add item to temp-group.');
+    end
+    else begin
+      IHandles[i] := ItemHandle;
+      // prepare output structure: fullItemName, itemType, itemName
+      Result.Add(PTStringList(PVarList)^.Strings[i] + '; ' +
+                 DataType(ItemType) + '; ' +
+                 ItemName);
+    end;
+  end;
+
+  // possible download values from server
+  if download and (PTStringList(PVarList)^.Count > 0)
+  then begin
+    Sleep(WAITIME * 7); // Need long time, empiric constants :-)
+
+    for i:=0 to PTStringList(PVarList)^.Count-1 do
+    begin
+      val := '';
+      ItemHandle := IHandles[i];
+      if ItemHandle <> 0
+      then begin
+        // read value of item
+        try
+          HR := ReadOPCGroupItemValue(GroupIf, ItemHandle, ItemValue, ItemQuality);
+        except
+        end;
+        if Succeeded(HR)
+        then begin
+          if (ItemQuality and OPC_QUALITY_MASK) = OPC_QUALITY_GOOD
+          then val := ItemValue
+          else val := 'bad quality';
+        end
+        else begin
+          Result[i] := Result[i] + '; ' + '---';
+        end;
+        // write value to Result
+        Result[i] := Result[i] + '; ' + val;
+      end;
+    end;
+  end; // download values
+
+  // remove group
+  HR := ServerIf.RemoveGroup(GroupHandle, False);
+end;
 
 end.

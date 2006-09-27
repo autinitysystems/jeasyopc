@@ -12,7 +12,10 @@ type
   NotFoundServersException = class(Exception);    // no opc servers found
   UnableIBrowseException = class(Exception);      // IBrowse not initialize
   UnableBrowseBranchException = class(Exception); // browse branch error
-
+  UnableBrowseLeafException = class(Exception);   // browse leaf (item) error
+  UnableAddGroupException = class(Exception);     // add group error
+  UnableAddItemException = class(Exception);      // add item to group error
+  UnableRemoveGroupException = class(Exception);  // remove group error
 
   ///////////////////////////////
   // Main CLASS: OPC standard  //

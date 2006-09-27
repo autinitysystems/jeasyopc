@@ -35,6 +35,9 @@ const
   SNotFoundServersException = EXCPKG + 'NotFoundServersException';
   SUnableIBrowseException = EXCPKG + 'UnableIBrowseException';
   SUnableBrowseBranchException = EXCPKG + 'UnableBrowseBranchException';
+  SUnableBrowseLeafException = EXCPKG + 'UnableBrowseLeafException';
+  SUnableAddGroupException = EXCPKG + 'UnableAddGroupException';
+  SUnableAddItemException = EXCPKG + 'UnableAddItemException';
 
   // java JCustomOPC classes => Delphi class representations
   JCustomOPC_ClassName = 'javafish.clients.opc.JCustomOPC';
@@ -239,6 +242,61 @@ begin
         throwException(PEnv, SUnableBrowseBranchException, PAnsiChar(E.Message));
       on E:UnableIBrowseException do
         throwException(PEnv, SUnableIBrowseException, PAnsiChar(E.Message));
+    end;
+  finally
+    JVM.Free;
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+function Java_javafish_clients_opc_browser_JOPCBrowser_getOPCItems(PEnv: PJNIEnv;
+  Obj: JObject; leaf: JString; download : JBoolean) : JObjectArray; stdcall;
+var
+  ClsItem : JClass;
+  JVM     : TJNIEnv;
+  JOArray : JObjectArray;
+  count   : integer;
+  I       : integer;
+  browse  : TBrowser;
+  lists   : TStringList;
+begin
+  Result := nil;
+  count  := 0;
+
+  // Create an instance of the Java environment
+  JVM := TJNIEnv.Create(PEnv);
+
+  try
+    try
+      lists := TBrowser(aopc[GetInt(ID, PEnv, Obj)]).getOPCItems(
+        JVM.JStringToString(leaf), download);
+
+      if lists <> nil
+      then begin
+        count := lists.Count;
+
+        // Allocate the array of Strings
+        ClsItem := JVM.FindClass('java/lang/String');
+        JOArray := JVM.NewObjectArray(count, ClsItem, nil);
+
+        // Now initialize each OPC Server name
+        for I:=0 to count-1 do
+          JVM.SetObjectArrayElement(JOArray, I, JVM.StringToJString(PAnsiChar(lists[I])));
+
+        // Return group to java
+        Result := JOArray;
+        lists.Free;
+      end;
+    except
+      on E:UnableBrowseLeafException do
+        throwException(PEnv, SUnableBrowseLeafException, PAnsiChar(E.Message));
+      on E:UnableIBrowseException do
+        throwException(PEnv, SUnableIBrowseException, PAnsiChar(E.Message));
+      on E:UnableAddGroupException do
+        throwException(PEnv, SUnableAddGroupException, PAnsiChar(E.Message));
+      on E:UnableAddItemException do
+        throwException(PEnv, SUnableAddItemException, PAnsiChar(E.Message));
     end;
   finally
     JVM.Free;
@@ -530,58 +588,6 @@ begin
   //aopc[GetInt(ID, PEnv, Obj)].PlayClient;
 end;
 
-//------------------------------------------------------------------------------
-
-function Java_javafish_clients_opc_JCustomOPC_ping(PEnv: PJNIEnv; Obj: JObject) : JBoolean; stdcall;
-begin
-// Result := aopc[GetInt(ID, PEnv, Obj)].GetServerActivity;
-  //Result := aopc[GetInt(ID, PEnv, Obj)].test2;
-end;
-
-//------------------------------------------------------------------------------
-//----------------------------- BROWSER METHODS --------------------------------
-
-
-function Java_javafish_clients_opc_JCustomOPC_getOPCItems(PEnv: PJNIEnv; Obj: JObject;
-  host : JString; server : JString; leaf: JString; download : JBoolean) : JObjectArray; stdcall;
-var
-  ClsItem : JClass;
-  JVM     : TJNIEnv;
-  JOArray : JObjectArray;
-  count   : integer;
-  I       : integer;
-  browse  : TBrowser;
-  lists   : TStringList;
-begin
-  Result := nil;
-
-  // Create an instance of the Java environment
-  JVM := TJNIEnv.Create(PEnv);
-
-  count  := 0;
-  //browse := TBrowser.Create(JVM.JStringToString(host),
-   //                         JVM.JStringToString(server));
-  //lists := browse.getOPCItems(JVM.JStringToString(leaf), download);
-  if lists <> nil
-  then begin
-    count := lists.Count;
-
-    // Allocate the array of Strings
-    ClsItem := JVM.FindClass('java/lang/String');
-    JOArray := JVM.NewObjectArray(count, ClsItem, nil);
-
-    // Now initialize each OPC Server name
-    for I:=0 to count-1 do
-      JVM.SetObjectArrayElement(JOArray, I, JVM.StringToJString(PAnsiChar(lists[I])));
-
-    // Return group to java
-    Result := JOArray;
-    lists.Free;
-  end;
-
-  JVM.Free;
-  browse.Free;
-end;
 
 (*******************************************************************************
   Make these routines available to Java.
@@ -597,9 +603,7 @@ exports
   Java_javafish_clients_opc_JCustomOPC_getReport,
   Java_javafish_clients_opc_JCustomOPC_pauseClient,
   Java_javafish_clients_opc_JCustomOPC_playClient,
-  Java_javafish_clients_opc_JCustomOPC_getOPCItems,
 
-  // new methods
   // JCustomOPC methods
   Java_javafish_clients_opc_JCustomOPC_newInstance,
   Java_javafish_clients_opc_JCustomOPC_connectServer,
@@ -608,7 +612,8 @@ exports
 
   // JOPCBrowser methods
   Java_javafish_clients_opc_browser_JOPCBrowser_getOPCServers,
-  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCBranch;
+  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCBranch,
+  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCItems;
 
 begin
 end.
