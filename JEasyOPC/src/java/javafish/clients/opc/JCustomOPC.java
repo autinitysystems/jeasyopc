@@ -20,11 +20,12 @@ import org.apache.log4j.PropertyConfigurator;
 
 /**
  * JCustomOPC Client
+ * abstract class
  * 
  * @author arnal2@seznam.cz
  * @version 2.00/2006
  */
-public class JCustomOPC implements OPCReportListener {
+abstract public class JCustomOPC implements OPCReportListener {
   
   // fixed constants
   public static final int WAITIME = 20; // ms 

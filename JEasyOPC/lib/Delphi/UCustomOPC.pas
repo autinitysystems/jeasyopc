@@ -16,6 +16,19 @@ type
   UnableAddGroupException = class(Exception);     // add group error
   UnableAddItemException = class(Exception);      // add item to group error
   UnableRemoveGroupException = class(Exception);  // remove group error
+  UnableRemoveItemException = class(Exception);   // remove item error
+
+const
+  // exceptions text
+  UnableBrowseBranchExceptionText = 'Unable to browse a branch.';
+  UnableBrowseLeafExceptionText = 'Unable to browse a leaf (item).';
+  UnableIBrowseExceptionText = 'Unable to initialize IBrowse.';
+  ConnectivityExceptionText = 'Browser initialization error.';
+  HostExceptionText = 'Host not found: ';
+  NotFoundServersExceptionText = 'OPC servers not found on ';
+  UnableAddGroupExceptionText = 'Unable to add group to server:';
+
+type
 
   ///////////////////////////////
   // Main CLASS: OPC standard  //
@@ -27,6 +40,7 @@ type
     serverProgID       : string;           // OPC server name: ProgID
     serverClientHandle : string;           // OPC Client Handle
     ppServerStatus     : POPCSERVERSTATUS; // server status
+    HR                 : HResult;          // COM results
     // COM object of OPC server
     ServerIf           : IOPCServer;       // server information
     // report information

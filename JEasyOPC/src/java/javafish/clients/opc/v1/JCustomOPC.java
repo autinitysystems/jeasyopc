@@ -5,9 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import javafish.clients.opc.asynch.AsynchEvent;
 import javafish.clients.opc.asynch.OPCAsynchGroupListener;
-import javafish.clients.opc.asynch.OPCGroup;
 import javafish.clients.opc.lang.Translate;
 import javafish.clients.opc.property.PropertyLoader;
 import javafish.clients.opc.report.LogEvent;
@@ -150,7 +148,7 @@ public class JCustomOPC extends Thread implements OPCReportListener {
    * 
    * @return OPCGroup
    */
-  private native OPCGroup getDownloadGroup();
+  //private native OPCGroup getDownloadGroup();
 
   /**
    * Get native OPC Client Report (status)
@@ -387,6 +385,7 @@ public class JCustomOPC extends Thread implements OPCReportListener {
    * 
    * @param group OPCGroup
    */
+  /*
   private void sendOPCGroup(OPCGroup group) {
     Object[] list = asynchGroupListeners.getListenerList();
     for (int i = 0; i < list.length; i += 2) {
@@ -398,6 +397,7 @@ public class JCustomOPC extends Thread implements OPCReportListener {
       }
     }
   }
+  */
 
   /**
    * Class for OPC Reporting

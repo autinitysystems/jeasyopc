@@ -9,14 +9,6 @@ uses
 const
   WAITIME = 300;
 
-  // exceptions text
-  UnableBrowseBranchExceptionText = 'Unable to browse a branch.';
-  UnableBrowseLeafExceptionText = 'Unable to browse a leaf (item).';
-  UnableIBrowseExceptionText = 'Unable to initialize IBrowse.';
-  ConnectivityExceptionText = 'Browser initialization error.';
-  HostExceptionText = 'Host not found: ';
-  NotFoundServersExceptionText = 'OPC servers not found on ';
-
 type
   PTStringList = ^TStringList;
 
@@ -24,7 +16,6 @@ type
   TBrowser = class(TCustomOPC)
   private
     IdIcmpClient : TIdIcmpClient;
-    HR           : HResult;
     Browse       : IOPCBrowseServerAddressSpace;
     SpaceType    : OPCNAMESPACETYPE;
     // show item value, if download is true
@@ -199,9 +190,9 @@ var
 begin
   Result := nil;
   // Define opc-group
-  HR := ServerAddGroup(ServerIf, 'GroupTemp', True, 500, 0, GroupIf, GroupHandle);
+  HR := ServerAddGroup(ServerIf, 'GroupTemp', True, 500, 0, 0.0, GroupIf, GroupHandle);
   if not Succeeded(HR)
-  then raise UnableAddGroupException.Create('Unable to add group to server: GroupTemp');
+  then raise UnableAddGroupException.Create('GroupTemp');
 
   // Find path of opc-items
   Result := TStringList.Create;
@@ -213,12 +204,12 @@ begin
     if not Succeeded(HR) then ItemName := StringToOleStr(Path + '.' +
                                           PTStringList(PVarList)^.Strings[i]);
     // get opc-item to group, get ItemType and ItemHandle
-    HR := GroupAddItem(GroupIf, ItemName, 0, VT_EMPTY, ItemHandle, ItemType);
+    HR := GroupAddItem(GroupIf, ItemName, 0, VT_EMPTY, true, '', ItemHandle, ItemType);
 
     if not Succeeded(HR)
     then begin
       // end downloading leaf
-      raise UnableAddItemException.create('Unable to add item to temp-group.');
+      raise UnableAddItemException.create('GroupTemp -> Item');
     end
     else begin
       IHandles[i] := ItemHandle;

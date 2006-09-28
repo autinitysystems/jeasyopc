@@ -23,7 +23,10 @@ uses
   UReport in 'UReport.pas',
   UCustomOPC in 'UCustomOPC.pas',
   UOPCBrowser in 'UOPCBrowser.pas',
-  OPCenum in 'OPCenum.pas';
+  OPCenum in 'OPCenum.pas',
+  UOPC in 'UOPC.pas',
+  UOPCGroup in 'UOPCGroup.pas',
+  UOPCItem in 'UOPCItem.pas';
 
 const
   ID = 'id'; // signification of id client
@@ -258,7 +261,6 @@ var
   JOArray : JObjectArray;
   count   : integer;
   I       : integer;
-  browse  : TBrowser;
   lists   : TStringList;
 begin
   Result := nil;

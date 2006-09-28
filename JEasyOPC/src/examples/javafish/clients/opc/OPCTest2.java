@@ -8,6 +8,7 @@ public class OPCTest2 {
   
   public static void main(String[] args) throws InterruptedException {
     // JCustomOPC Clients test
+    /*
     JCustomOPC jopc = new JCustomOPC("localhost", "Matrikon.OPC.Simulation", "JCustomOPC");
     try {
       jopc.connect();
@@ -24,6 +25,7 @@ public class OPCTest2 {
     catch (ConnectivityException e) {
       e.printStackTrace();
     }
+    */
   }
 
 }

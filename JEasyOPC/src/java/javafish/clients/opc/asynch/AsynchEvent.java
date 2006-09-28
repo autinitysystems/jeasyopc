@@ -2,6 +2,8 @@ package javafish.clients.opc.asynch;
 
 import java.awt.AWTEvent;
 
+import javafish.clients.opc.component.OPCGroup;
+
 
 /**
  * OPC Asynchronous event 
@@ -11,6 +13,7 @@ public class AsynchEvent extends AWTEvent {
   
   private OPCGroup group;
   
+  //private OPCGroup group;
   public AsynchEvent(Object source, int id, OPCGroup group) {
     super(source, id);
     this.group = group;

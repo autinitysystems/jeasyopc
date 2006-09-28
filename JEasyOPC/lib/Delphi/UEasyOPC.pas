@@ -494,7 +494,7 @@ begin
   for idx:=0 to TRYREPEAT do
   begin // the group is automatically started
     Result := ServerAddGroup(ServerIf, OPCG.GroupName, OPCG.Active, OPCG.TimeInterval,
-      OPCG.ClientHandle, OPCG.GroupIf, OPCG.GroupHandle);
+      OPCG.ClientHandle, 0.0, OPCG.GroupIf, OPCG.GroupHandle);
     if Succeeded(Result) then break;
   end;
 end;
@@ -505,7 +505,7 @@ begin
   for idx:=0 to TRYREPEAT do
   begin
     Result := GroupAddItem(OPCG.GroupIf, Item.ItemName, Item.ClientHandle, VT_EMPTY,
-      Item.ItemHandle, Item.ItemType);
+      true, '', Item.ItemHandle, Item.ItemType);
     if Succeeded(Result) then break;
   end;
 end;

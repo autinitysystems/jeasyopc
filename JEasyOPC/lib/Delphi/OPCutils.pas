@@ -22,14 +22,20 @@ uses
 {$ENDIF}
   Windows, ActiveX, OPCtypes, OPCDA, SysUtils, Dialogs;
 
+// Wrappers
+
+// register group on opc-server
 function ServerAddGroup(ServerIf: IOPCServer; Name: string; Active: BOOL;
-          UpdateRate: DWORD; ClientHandle: OPCHANDLE; var GroupIf: IOPCItemMgt;
-          var ServerHandle: OPCHANDLE): HResult;
+           UpdateRate: DWORD; ClientHandle: OPCHANDLE; PercentDeadBand: Single;
+           var GroupIf: IOPCItemMgt; var ServerHandle: OPCHANDLE): HResult;
+// register group item on opc-server
 function GroupAddItem(GroupIf: IOPCItemMgt; ItemID: string;
-          ClientHandle: OPCHANDLE; DataType: TVarType;
-          var ServerHandle: OPCHANDLE; var CanonicalType: TVarType): HResult;
-function GroupRemoveItem(GroupIf: IOPCItemMgt;
-          ServerHandle: OPCHANDLE): HResult;
+           ClientHandle: OPCHANDLE; DataType: TVarType;
+           active : boolean; accessPath : string;
+           var ServerHandle: OPCHANDLE; var CanonicalType: TVarType): HResult;
+// unregister item on opc-server
+function GroupRemoveItem(GroupIf: IOPCItemMgt; ServerHandle: OPCHANDLE): HResult;
+
 function GroupAdviseTime(GroupIf: IUnknown; Sink: IAdviseSink;
           var AsyncConnection: Longint): HResult;
 function GroupUnAdvise(GroupIf: IUnknown; AsyncConnection: Longint): HResult;
@@ -50,9 +56,9 @@ function GetGroupActive(GroupIf: IUnknown; var Active: boolean): HRESULT;
 function GetGroupInfo(GroupIf: IUnknown; var GInfo : string): HRESULT;
 function SetItemActivity(GroupIf: IUnknown; ItemHandle: OPCHANDLE; Active : boolean): HRESULT;
 function ChangePosTo(Browse: IOPCBrowseServerAddressSpace; Path: string): HRESULT;
-function DataType(Dtype: TVarType): string;
 function SetGroupActivity(GroupIf: IUnknown; Active: bool): HRESULT;
 function SetGroupUpdateTime(GroupIf: IUnknown; UpdateTime : DWORD): HRESULT;
+function DataType(Dtype: TVarType): string;
 
 implementation
 
@@ -60,30 +66,26 @@ implementation
 
 // wrapper for IOPCServer.AddGroup
 function ServerAddGroup(ServerIf: IOPCServer; Name: string; Active: BOOL;
-          UpdateRate: DWORD; ClientHandle: OPCHANDLE; var GroupIf: IOPCItemMgt;
-          var ServerHandle: OPCHANDLE): HResult;
+          UpdateRate: DWORD; ClientHandle: OPCHANDLE; PercentDeadBand: Single;
+          var GroupIf: IOPCItemMgt; var ServerHandle: OPCHANDLE): HResult;
 var
-  PercentDeadBand: Single;
   RevisedUpdateRate: DWORD;
 begin
   Result := E_FAIL;
   if ServerIf <> nil then
   begin
-    PercentDeadBand := 0.0;
     Result := ServerIf.AddGroup(PWideChar(WideString(Name)), Active, UpdateRate,
                             ClientHandle, nil, @PercentDeadBand, 0,
                             ServerHandle, RevisedUpdateRate, IOPCItemMgt,
                             IUnknown(GroupIf));
   end;
-  if Failed(Result) then
-  begin
-    GroupIf := nil;
-  end;
+  if Failed(Result) then GroupIf := nil;
 end;
 
 // wrapper for IOPCItemMgt.AddItems (single item only)
 function GroupAddItem(GroupIf: IOPCItemMgt; ItemID: string;
           ClientHandle: OPCHANDLE; DataType: TVarType;
+          active : boolean; accessPath : string;
           var ServerHandle: OPCHANDLE; var CanonicalType: TVarType): HResult;
 var
   ItemDef: OPCITEMDEF;
@@ -97,9 +99,9 @@ begin
   end;
   with ItemDef do
   begin
-    szAccessPath := '';
+    szAccessPath := PWideChar(WideString(accessPath));
     szItemID := PWideChar(WideString(ItemID));
-    bActive := True;
+    bActive := active;
     hClient := ClientHandle;
     dwBlobSize := 0;
     pBlob := nil;

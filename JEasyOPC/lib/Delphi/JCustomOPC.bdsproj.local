@@ -13,5 +13,9 @@
     <Transaction>2006.09.24 11:27:47.109.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\Unit1.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UCustomOPC.pas</Transaction>
     <Transaction>2006.09.24 16:23:44.437.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCBrowser.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCBrowser2.pas</Transaction>
     <Transaction>2006.09.24 16:23:57.078.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\Unit1.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCBrowser.pas</Transaction>
+    <Transaction>2006.09.28 13:19:14.234.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\Unit1.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCSynch.pas</Transaction>
+    <Transaction>2006.09.28 13:59:30.984.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCSynch.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPC.pas</Transaction>
+    <Transaction>2006.09.28 14:18:53.375.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\Unit1.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCGroup.pas</Transaction>
+    <Transaction>2006.09.28 14:20:07.937.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\Unit1.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCItem.pas</Transaction>
   </Transactions>
 </BorlandProject>
