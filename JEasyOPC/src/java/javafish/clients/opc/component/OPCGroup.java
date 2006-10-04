@@ -1,6 +1,7 @@
 package javafish.clients.opc.component;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 /**
  * OPC Group 
@@ -12,7 +13,7 @@ public class OPCGroup {
   private int clientHandle;
   
   /* list of items */
-  private ArrayList<OPCItem> items;
+  private LinkedHashMap<Integer, OPCItem> items;
   
   /* group name: must be unique */
   private String groupName;
@@ -26,9 +27,21 @@ public class OPCGroup {
   /* percent of dead band */
   private float percentDeadBand;
   
-  public OPCGroup() {
-    items = new ArrayList<OPCItem>();
+  /**
+   * Create new instance of OPC Group
+   * 
+   * @param groupName String
+   * @param active boolean
+   * @param updateRate double
+   * @param percentDeadBand float
+   */
+  public OPCGroup(String groupName, boolean active, double updateRate, float percentDeadBand) {
+    items = new LinkedHashMap<Integer, OPCItem>();
     clientHandle = generateHandle();    
+    this.groupName = groupName;
+    this.active = active;
+    this.updateRate = updateRate;
+    this.percentDeadBand = percentDeadBand;
   }
   
   /**
@@ -50,11 +63,23 @@ public class OPCGroup {
   }
 
   public ArrayList<OPCItem> getItems() {
-    return items;
+    return new ArrayList<OPCItem>(items.values());
+  }
+  
+  public OPCItem[] getItemsAsArray() {
+    OPCItem[] aitems = new OPCItem[items.size()];
+    for (int i = 0; i < aitems.length; i++) {
+      aitems[i] = items.get(i);
+    }
+    return aitems;
   }
 
-  public void setItems(ArrayList<OPCItem> items) {
-    this.items = items;
+  public void addItem(OPCItem item) {
+    items.put(new Integer(item.getClientHandle()), item);
+  }
+  
+  public void removeItem(OPCItem item) {
+    items.remove(new Integer(item.getClientHandle()));
   }
 
   public double getUpdateRate() {
@@ -77,6 +102,14 @@ public class OPCGroup {
     return percentDeadBand;
   }
   
-  
+  /**
+   * Get opc-item by its clientHandle
+   * 
+   * @param clientHandle int 
+   * @return item OPCItem
+   */
+  public OPCItem getItemByClientHandle(int clientHandle) {
+    return items.get(new Integer(clientHandle));
+  }
 
 }

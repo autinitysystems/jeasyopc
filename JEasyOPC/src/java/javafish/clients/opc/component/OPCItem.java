@@ -39,8 +39,20 @@ public class OPCItem {
     return active;
   }
   
-  public OPCItem() {
-    clientHandle = generateHandle();    
+  /**
+   * Create new instance of OPCItem
+   * 
+   * @param itemName String
+   * @param active boolean
+   * @param accessPath String
+   * @param dataType int
+   */
+  public OPCItem(String itemName, boolean active, String accessPath, int dataType) {
+    clientHandle = generateHandle();
+    this.itemName = itemName;
+    this.active = active;
+    this.accessPath = accessPath;
+    this.dataType = dataType;
   }
   
   /**

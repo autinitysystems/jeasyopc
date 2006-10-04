@@ -45,6 +45,7 @@ const
   // java JCustomOPC classes => Delphi class representations
   JCustomOPC_ClassName = 'javafish.clients.opc.JCustomOPC';
   JOPCBrowser_ClassName = 'javafish.clients.opc.browser.JOPCBrowser';
+  JOPC_ClassName = 'javafish.clients.opc.JOPC';
 
 type
   TAOPC = array of TCustomOPC;
@@ -86,6 +87,15 @@ begin
   then begin
     // create TCustomOPC
     aopc[countOPC] := TBrowser.Create(_host, _serverProgID, _serverClientHandle);
+
+    // create and link logger
+    aqreport[countOPC] := TReportQueue.Create;
+    aopc[countOPC].getReport.OnStatusMessage := aqreport[countOPC].StatusMessage;
+  end else
+  if _className = JOPC_ClassName // JOPC
+  then begin
+    // create TCustomOPC
+    aopc[countOPC] := TOPC.Create(_host, _serverProgID, _serverClientHandle);
 
     // create and link logger
     aqreport[countOPC] := TReportQueue.Create;
@@ -304,6 +314,17 @@ begin
     JVM.Free;
   end;
 end;
+
+//------------------------------------------------------------------------------
+//----------------------------- OPC METHODS ------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_addNativeGroup(PEnv: PJNIEnv;
+  Obj: JObject; clientHandle : JInt); stdcall;
+begin
+  // create native group representation and add to OPC instance
+  TOPC(aopc[GetInt(ID, PEnv, Obj)]).addGroup(TOPCGroup.create(PEnv, Obj, clientHandle));
+end;
+
 
 //------------------------------------------------------------------------------
 //!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -615,7 +636,10 @@ exports
   // JOPCBrowser methods
   Java_javafish_clients_opc_browser_JOPCBrowser_getOPCServers,
   Java_javafish_clients_opc_browser_JOPCBrowser_getOPCBranch,
-  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCItems;
+  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCItems,
+
+  // JOPC methods
+  Java_javafish_clients_opc_JOPC_addNativeGroup;
 
 begin
 end.

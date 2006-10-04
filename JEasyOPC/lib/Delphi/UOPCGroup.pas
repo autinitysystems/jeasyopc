@@ -3,7 +3,7 @@ unit UOPCGroup;
 interface
 
 uses
-  Classes, Windows, OPCtypes, OPCDA, UOPCItem;
+  Classes, Windows, SysUtils, OPCtypes, OPCDA, UOPCItem, JNI;
 
 type
 
@@ -19,8 +19,9 @@ type
     GroupIf         : IOPCItemMgt;
     GroupHandle     : OPCHANDLE;  // serverhandle
     // constructor
-    constructor create(groupName : string; active : boolean;
-      updateRate: DWORD; clientHandle: OPCHANDLE; percentDeadBand: Single);
+    constructor create(PEnv: PJNIEnv; Obj: JObject; clientHandle: OPCHANDLE);
+    // update methods
+    procedure update(PEnv: PJNIEnv; Obj: JObject); overload; // update from OPC groups
     // GET
     function getGroupName : string;
     function getItems : TList;
@@ -42,15 +43,17 @@ implementation
 
 { TOPCGroup }
 
-constructor TOPCGroup.create(groupName : string; active : boolean;
-  updateRate: DWORD; clientHandle: OPCHANDLE; percentDeadBand: Single);
+constructor TOPCGroup.create(PEnv: PJNIEnv; Obj: JObject; clientHandle: OPCHANDLE);
 begin
   Items := TList.create;
+  self.clientHandle := clientHandle;
+  update(PEnv, Obj);
+  {
   self.groupName := groupName;
   self.active := active;
   self.updateRate := updateRate;
-  self.clientHandle := clientHandle;
   self.percentDeadBand := percentDeadBand;
+  }
 end;
 
 function TOPCGroup.getClientHandle: OPCHANDLE;
@@ -130,6 +133,53 @@ end;
 procedure TOPCGroup.setActive(active: boolean);
 begin
   self.active := active;
+end;
+
+//------------------------------------------------------------------------------
+//--- JAVA CODE CONNECTION
+
+// update from JAVA code
+procedure TOPCGroup.update(PEnv: PJNIEnv; Obj: JObject);
+var
+  JVM: TJNIEnv;
+  Cls: JClass;
+  FID: JFieldID;
+
+  getGroupByClientHandle : JMethodID;
+  group : JObject;
+  groupClass : JClass;
+  args: array[0..0] of JValue;
+  chandle : JInt;
+
+  jgroupName : JString;
+  groupName  : string;
+
+  foo : TStringList;
+begin
+  JVM := TJNIEnv.Create(PEnv);
+  Cls := JVM.GetObjectClass(Obj);
+
+  // get group from groups map by its clientHandle
+  getGroupByClientHandle := JVM.GetMethodID(Cls, 'getGroupByClientHandle',
+    '(I)Ljavafish/clients/opc/component/OPCGroup;');
+  args[0].i := clientHandle;
+  group := JVM.CallObjectMethodA(Obj, getGroupByClientHandle, @args);
+  groupClass := JVM.GetObjectClass(group);
+  // get clientHandle
+  FID := JVM.GetFieldID(groupClass, 'clientHandle', 'I');
+  chandle := JVM.GetIntField(group, FID);
+
+  FID := JVM.GetFieldID(groupClass, 'groupName', 'Ljava/lang/String;');
+  jgroupName := JVM.GetObjectField(group, FID);
+  groupName := JVM.JStringToString(jgroupName);
+
+  foo := TStringList.Create;
+  foo.Add('handle: ' + IntToStr(chandle));
+  foo.Add('groupName: ' + groupName);
+  foo.SaveToFile('opcGroupTest.txt');
+
+  foo.Free;
+  JVM.Free;
 end;
 
 end.
