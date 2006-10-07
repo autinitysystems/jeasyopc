@@ -23,7 +23,7 @@ const
   UnableBrowseBranchExceptionText = 'Unable to browse a branch.';
   UnableBrowseLeafExceptionText = 'Unable to browse a leaf (item).';
   UnableIBrowseExceptionText = 'Unable to initialize IBrowse.';
-  ConnectivityExceptionText = 'Browser initialization error.';
+  ConnectivityExceptionText = 'Connection fails to OPC Server.';
   HostExceptionText = 'Host not found: ';
   NotFoundServersExceptionText = 'OPC servers not found on ';
   UnableAddGroupExceptionText = 'Unable to add group to server:';
@@ -96,10 +96,10 @@ begin
 
     // check COM object
     if ServerIf = nil
-    then raise ConnectivityException.Create('Connection fails to OPC Server.');
+    then raise ConnectivityException.Create(ConnectivityExceptionText);
   except
     on E:EOleSysError do
-      raise ConnectivityException.Create('Connection fails to OPC Server.');
+      raise ConnectivityException.Create(ConnectivityExceptionText);
   end;
 end;
 

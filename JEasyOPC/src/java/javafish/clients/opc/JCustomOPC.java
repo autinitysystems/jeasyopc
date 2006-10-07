@@ -113,8 +113,10 @@ abstract public class JCustomOPC implements OPCReportListener {
   
   /**
    * Connect to server
+   * 
+   * @throws ConnectivityException 
    */
-  private native void connectServer();
+  private native void connectServer() throws ConnectivityException;
   
   /**
    * Disconnect server
@@ -167,7 +169,13 @@ abstract public class JCustomOPC implements OPCReportListener {
    * @throws ConnectivityException
    */
   public void connect() throws ConnectivityException {
-    connectServer();
+    try {
+      connectServer();
+    }
+    catch (ConnectivityException e) {
+      throw new ConnectivityException(Translate.getString("CONNECTIVITY_EXCEPTION") + " " +
+          getHost() + "->" + getServerProgID());
+    }
   }
   
   /**

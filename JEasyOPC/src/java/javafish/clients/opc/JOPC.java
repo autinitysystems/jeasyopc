@@ -1,8 +1,12 @@
 package javafish.clients.opc;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 import javafish.clients.opc.component.OPCGroup;
+import javafish.clients.opc.component.OPCItem;
+import javafish.clients.opc.exception.GroupExistsException;
+import javafish.clients.opc.lang.Translate;
 
 /**
  * Java OPC class
@@ -30,30 +34,51 @@ public class JOPC extends JCustomOPC implements Runnable {
   }
   
   /**
-   * Add opc group to native source (by its client handle)
-   * NOTE: Group has to be in groups map.
+   * Add opc group to native source
    * 
-   * @param groupClientHandle int
+   * @param OPCGroup group
    */
-  private native void addNativeGroup(int groupClientHandle);
+  private native void addNativeGroup(OPCGroup group);
+  
+  /**
+   * Update native groups from JAVA code
+   */
+  private native void updateNativeGroups();
+  
+  private native void synchReadItemNative(OPCGroup group, OPCItem item);
   
   /**
    * Add opc group to the client
+   * <p>
+   * <i>note:</i> GroupExistsException - runtime exception
    * 
    * @param group OPCGroup
    */
   public void addGroup(OPCGroup group) {
-    groups.put(new Integer(group.getClientHandle()), group);    
-    addNativeGroup(group.getClientHandle()); // group must be in groups map!
+    if (!groups.containsKey(new Integer(group.getClientHandle()))) {
+      addNativeGroup(group);
+      groups.put(new Integer(group.getClientHandle()), group);    
+    } else { // throw exception
+      throw new GroupExistsException(Translate.getString("GROUP_EXISTS_EXCEPTION") + " " +
+          group.getGroupName());
+    }
   }
   
   /**
    * Remove opc group from the client
+   * <p>
+   * <i>note:</i> GroupExistsException - runtime exception
    * 
    * @param group OPCGroup
    */
   public void removeGroup(OPCGroup group) {
-    groups.remove(new Integer(group.getClientHandle()));
+    if (groups.containsKey(new Integer(group.getClientHandle()))) {
+      groups.remove(new Integer(group.getClientHandle()));
+      updateGroups();
+    } else { // throw exception
+      throw new GroupExistsException(Translate.getString("GROUP_NO_EXISTS_EXCEPTION") + " " +
+          group.getGroupName());
+    }
   }
   
   /**
@@ -65,6 +90,28 @@ public class JOPC extends JCustomOPC implements Runnable {
   public OPCGroup getGroupByClientHandle(int clientHandle) {
     return groups.get(new Integer(clientHandle));
   }
+  
+  /**
+   * Get opc-groups as array
+   * 
+   * @return groups OPCGroup[]
+   */
+  public OPCGroup[] getGroupsAsArray() {
+    int i = 0;
+    OPCGroup[] agroups = new OPCGroup[groups.size()];
+    for (Iterator iter = groups.values().iterator(); iter.hasNext();) {
+      agroups[i++] = (OPCGroup)iter.next();
+    }
+    return agroups;
+  }
+  
+  /**
+   * Update native groups representation
+   */
+  public void updateGroups() {
+    updateNativeGroups();
+  }
+  
   
   
   public void run() {

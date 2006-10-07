@@ -1,12 +1,16 @@
 package javafish.clients.opc.component;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+
+import javafish.clients.opc.exception.ItemExistsException;
+import javafish.clients.opc.lang.Translate;
 
 /**
  * OPC Group 
  */
-public class OPCGroup {
+public class OPCGroup implements Cloneable {
   private static int generateHandle = 0;
   
   /* ID of group (do not modify) */
@@ -22,7 +26,7 @@ public class OPCGroup {
   private boolean active;
   
   /* update interval of group */
-  private double updateRate;
+  private int updateRate;
   
   /* percent of dead band */
   private float percentDeadBand;
@@ -35,7 +39,7 @@ public class OPCGroup {
    * @param updateRate double
    * @param percentDeadBand float
    */
-  public OPCGroup(String groupName, boolean active, double updateRate, float percentDeadBand) {
+  public OPCGroup(String groupName, boolean active, int updateRate, float percentDeadBand) {
     items = new LinkedHashMap<Integer, OPCItem>();
     clientHandle = generateHandle();    
     this.groupName = groupName;
@@ -54,50 +58,121 @@ public class OPCGroup {
     return generateHandle++;
   }
 
+  /**
+   * Test activity of group
+   * 
+   * @return is active, boolean
+   */
   public boolean isActive() {
     return active;
   }
 
+  /**
+   * Set activity of group
+   * 
+   * @param active boolean
+   */
   public void setActive(boolean active) {
     this.active = active;
   }
 
+  /**
+   * Get items as array list
+   * 
+   * @return items ArrayList
+   */
   public ArrayList<OPCItem> getItems() {
     return new ArrayList<OPCItem>(items.values());
   }
   
+  /**
+   * Get items as array
+   * 
+   * @return items OPCItem[]
+   */
   public OPCItem[] getItemsAsArray() {
+    int i = 0;
     OPCItem[] aitems = new OPCItem[items.size()];
-    for (int i = 0; i < aitems.length; i++) {
-      aitems[i] = items.get(i);
+    for (Iterator iter = items.values().iterator(); iter.hasNext();) {
+      aitems[i++] = (OPCItem)iter.next();
     }
     return aitems;
   }
 
+  /**
+   * Add item to group
+   * <p>
+   * <i>note:</i> throws ItemExistsException - runtime exception
+   * 
+   * @param item OPCItem
+   */
   public void addItem(OPCItem item) {
-    items.put(new Integer(item.getClientHandle()), item);
+    if (!items.containsKey(new Integer(item.getClientHandle()))) {
+      items.put(new Integer(item.getClientHandle()), item);
+    } else { // throw exception
+      throw new ItemExistsException(Translate.getString("ITEM_EXISTS_EXCEPTION") + " " +
+          item.getItemName());
+    }
   }
   
+  /**
+   * Remove item from group
+   * <p>
+   * <i>note:</i> throws ItemExistsException - runtime exception
+   * 
+   * @param item OPCItem
+   */
   public void removeItem(OPCItem item) {
-    items.remove(new Integer(item.getClientHandle()));
+    if (items.containsKey(new Integer(item.getClientHandle()))) {
+      items.remove(new Integer(item.getClientHandle()));
+    } else { // throw exception
+      throw new ItemExistsException(Translate.getString("ITEM_NO_EXISTS_EXCEPTION") + " " +
+          item.getItemName());
+    }
   }
 
-  public double getUpdateRate() {
+  /**
+   * Get update rate of group
+   * 
+   * @return updateRatio [ms], int
+   */
+  public int getUpdateRate() {
     return updateRate;
   }
 
-  public void setUpdateRate(double updateRate) {
+  /**
+   * Set update rate of group
+   * 
+   * @param updateRate [ms], int
+   */
+  public void setUpdateRate(int updateRate) {
     this.updateRate = updateRate;
   }
 
+  /**
+   * Get clientHandle of group
+   * (unique key)
+   * 
+   * @return key int
+   */
   public int getClientHandle() {
     return clientHandle;
   }
 
+  /**
+   * Get group name
+   * 
+   * @return name String
+   */
   public String getGroupName() {
     return groupName;
   }
 
+  /**
+   * Get percent dead band of group
+   * 
+   * @return band float
+   */
   public float getPercentDeadBand() {
     return percentDeadBand;
   }
@@ -110,6 +185,57 @@ public class OPCGroup {
    */
   public OPCItem getItemByClientHandle(int clientHandle) {
     return items.get(new Integer(clientHandle));
+  }
+  
+  /**
+   * Return clone of opc-group
+   * 
+   * @return group Object
+   * @Override
+   */
+  public Object clone() {
+    OPCGroup group = null;
+    try {
+      group = (OPCGroup) super.clone();
+      // add attributes
+      group.clientHandle = clientHandle;
+      group.groupName = groupName;
+      group.active = active;
+      group.updateRate = updateRate;
+      group.percentDeadBand = percentDeadBand;
+      // clone items
+      group.items = new LinkedHashMap<Integer, OPCItem>();
+      for (Iterator iter = items.values().iterator(); iter.hasNext();) {
+        OPCItem item = (OPCItem) iter.next();
+        group.addItem((OPCItem)item.clone());
+      }
+    }
+    catch (CloneNotSupportedException e) {
+      System.err.println(e);
+    }
+    return group;
+  }
+  
+  @Override
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.append("(class = " + getClass().getName() + "; ");
+    sb.append("clientHandle = " + clientHandle + "; ");
+    sb.append("groupName = " + groupName + "; ");
+    sb.append("active = " + active + "; ");
+    sb.append("updateRate = " + updateRate + "; ");
+    sb.append("percentDeadBand = " + percentDeadBand + "; ");
+    sb.append("items => " + System.getProperty("line.separator"));
+    // print items
+    if (items.size() > 0) {
+      for (Iterator iter = items.values().iterator(); iter.hasNext();) {
+        sb.append(" => " + iter.next() + System.getProperty("line.separator"));
+      }
+    } else {
+      sb.append(" => NO ITEMS" + System.getProperty("line.separator"));
+    }
+    
+    return sb.toString();
   }
 
 }

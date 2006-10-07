@@ -28,13 +28,19 @@ uses
 function ServerAddGroup(ServerIf: IOPCServer; Name: string; Active: BOOL;
            UpdateRate: DWORD; ClientHandle: OPCHANDLE; PercentDeadBand: Single;
            var GroupIf: IOPCItemMgt; var ServerHandle: OPCHANDLE): HResult;
+
 // register group item on opc-server
 function GroupAddItem(GroupIf: IOPCItemMgt; ItemID: string;
            ClientHandle: OPCHANDLE; DataType: TVarType;
            active : boolean; accessPath : string;
            var ServerHandle: OPCHANDLE; var CanonicalType: TVarType): HResult;
+
 // unregister item on opc-server
 function GroupRemoveItem(GroupIf: IOPCItemMgt; ServerHandle: OPCHANDLE): HResult;
+
+// synch read item value
+function ReadOPCGroupItemValue(GroupIf: IUnknown; ItemServerHandle: OPCHANDLE;
+           var ItemValue: string; var ItemQuality: Word): HResult;
 
 function GroupAdviseTime(GroupIf: IUnknown; Sink: IAdviseSink;
           var AsyncConnection: Longint): HResult;
@@ -43,8 +49,6 @@ function GroupAdvise2(GroupIf: IUnknown; OPCDataCallback: IOPCDataCallback;
           var AsyncConnection: Longint): HResult;
 function GroupUnadvise2(GroupIf: IUnknown;
           var AsyncConnection: Longint): HResult;
-function ReadOPCGroupItemValue(GroupIf: IUnknown; ItemServerHandle: OPCHANDLE;
-          var ItemValue: string; var ItemQuality: Word): HResult;
 function WriteOPCGroupItemValue(GroupIf: IUnknown; ItemServerHandle: OPCHANDLE;
           ItemValue: OleVariant): HResult;
 

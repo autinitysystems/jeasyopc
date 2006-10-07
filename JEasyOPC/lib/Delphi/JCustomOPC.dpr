@@ -114,8 +114,6 @@ var
   _host : string;
   _serverProgID : string;
   _serverClientHandle : string;
-
-  foo : TStringList;
 begin
   JVM                 := TJNIEnv.Create(PEnv);
   _className          := JVM.JStringToString(className);
@@ -168,7 +166,7 @@ end;
 //------------------------------------------------------------------------------
 //----------------------------- BROWSER METHODS --------------------------------
 
-function Java_javafish_clients_opc_browser_JOPCBrowser_getOPCServers(PEnv: PJNIEnv;
+function Java_javafish_clients_opc_browser_JOPCBrowser_getOPCServersNative(PEnv: PJNIEnv;
   Obj: JObject; host : JString) : JObjectArray; stdcall;
 var
   ClsItem : JClass;
@@ -216,7 +214,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-function Java_javafish_clients_opc_browser_JOPCBrowser_getOPCBranch(PEnv: PJNIEnv;
+function Java_javafish_clients_opc_browser_JOPCBrowser_getOPCBranchNative(PEnv: PJNIEnv;
   Obj: JObject; branch : JString) : JObjectArray; stdcall;
 var
   ClsItem : JClass;
@@ -263,7 +261,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-function Java_javafish_clients_opc_browser_JOPCBrowser_getOPCItems(PEnv: PJNIEnv;
+function Java_javafish_clients_opc_browser_JOPCBrowser_getOPCItemsNative(PEnv: PJNIEnv;
   Obj: JObject; leaf: JString; download : JBoolean) : JObjectArray; stdcall;
 var
   ClsItem : JClass;
@@ -319,17 +317,60 @@ end;
 //----------------------------- OPC METHODS ------------------------------------
 
 procedure Java_javafish_clients_opc_JOPC_addNativeGroup(PEnv: PJNIEnv;
-  Obj: JObject; clientHandle : JInt); stdcall;
+  Obj: JObject; group : JObject); stdcall;
 begin
   // create native group representation and add to OPC instance
-  TOPC(aopc[GetInt(ID, PEnv, Obj)]).addGroup(TOPCGroup.create(PEnv, Obj, clientHandle));
+  TOPC(aopc[GetInt(ID, PEnv, Obj)]).addGroup(TOPCGroup.create(PEnv, group));
 end;
 
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_updateNativeGroups(PEnv: PJNIEnv;
+  Obj: JObject); stdcall;
+begin
+  // update native groups of opc-client from JAVA code
+  TOPC(aopc[GetInt(ID, PEnv, Obj)]).updateGroups(PEnv, Obj);
+end;
+
+//------------------------------------------------------------------------------
+
+function Java_javafish_clients_opc_JOPC_synchReadItemNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject; item : JObject) : JObject; stdcall;
+begin
+  // synchronous reading of specific group->item
+  Result := TOPC(aopc[GetInt(ID, PEnv, Obj)]).synchReadItem(PEnv, group, item);
+end;
 
 //------------------------------------------------------------------------------
 //!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+function Java_javafish_clients_opc_JOPC_commitTest(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject) : JObject; stdcall;
+var
+  itm : TOPCGroup;
+  itmClone : JObject;
+  i : integer;
+begin
+  // update native groups of opc-client from JAVA code
+  itm := TOPCGroup.create(PEnv, group);
+  itmClone := itm.clone(PEnv, group);
 
+  itm.setActive(false);
+  itm.setUpdateRate(5000);
+  itm.setPercentDeadBand(0.321);
+
+  for i:=0 to itm.getItems.Count-1 do
+  begin
+    TOPCItem(itm.getItems[i]).setItemValue('321.0');
+    TOPCItem(itm.getItems[i]).setTimeStamp(StrToDateTime('7.10.2006 22:36:01'));
+  end;
+
+  itm.commit(PEnv, itmClone);
+
+  Result := itmClone;
+end;
+
+//------------------------------------------------------------------------------
 
 procedure Java_javafish_clients_opc_JCustomOPC_createCustomOPC(PEnv: PJNIEnv;
   Obj: JObject; host : JString; serverProgID : JString;
@@ -634,12 +675,13 @@ exports
   Java_javafish_clients_opc_JCustomOPC_getStatus,
 
   // JOPCBrowser methods
-  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCServers,
-  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCBranch,
-  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCItems,
+  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCServersNative,
+  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCBranchNative,
+  Java_javafish_clients_opc_browser_JOPCBrowser_getOPCItemsNative,
 
   // JOPC methods
-  Java_javafish_clients_opc_JOPC_addNativeGroup;
-
+  Java_javafish_clients_opc_JOPC_addNativeGroup,
+  Java_javafish_clients_opc_JOPC_updateNativeGroups,
+  Java_javafish_clients_opc_JOPC_synchReadItemNative;
 begin
 end.
