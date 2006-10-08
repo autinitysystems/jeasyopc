@@ -5,7 +5,14 @@ import java.util.LinkedHashMap;
 
 import javafish.clients.opc.component.OPCGroup;
 import javafish.clients.opc.component.OPCItem;
+import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.GroupExistsException;
+import javafish.clients.opc.exception.SynchReadException;
+import javafish.clients.opc.exception.SynchWriteException;
+import javafish.clients.opc.exception.UnableAddGroupException;
+import javafish.clients.opc.exception.UnableAddItemException;
+import javafish.clients.opc.exception.UnableRemoveGroupException;
+import javafish.clients.opc.exception.UnableRemoveItemException;
 import javafish.clients.opc.lang.Translate;
 
 /**
@@ -21,7 +28,7 @@ public class JOPC extends JCustomOPC implements Runnable {
   protected LinkedHashMap<Integer, OPCGroup> groups;
 
   /**
-   * Create new instance of OPC Client
+   * Create new instance of OPC Client.
    * 
    * @param host String 
    * @param serverProgID String
@@ -33,22 +40,36 @@ public class JOPC extends JCustomOPC implements Runnable {
     thread = new Thread(this);
   }
   
-  /**
-   * Add opc group to native source
-   * 
-   * @param OPCGroup group
-   */
   private native void addNativeGroup(OPCGroup group);
   
-  /**
-   * Update native groups from JAVA code
-   */
   private native void updateNativeGroups();
   
-  private native void synchReadItemNative(OPCGroup group, OPCItem item);
+  private native void registerGroupNative(OPCGroup group)
+    throws ComponentNotFoundException, UnableAddGroupException; 
+  
+  private native void registerItemNative(OPCGroup group, OPCItem item)
+    throws ComponentNotFoundException, UnableAddItemException;
+  
+  private native void registerGroupsNative()
+    throws UnableAddGroupException, UnableAddItemException;
+  
+  private native void unregisterGroupNative(OPCGroup group)
+    throws ComponentNotFoundException, UnableRemoveGroupException;
+  
+  private native void unregisterItemNative(OPCGroup group, OPCItem item)
+    throws ComponentNotFoundException, UnableRemoveItemException;
+  
+  private native void unregisterGroupsNative()
+    throws UnableRemoveGroupException;
+  
+  private native OPCItem synchReadItemNative(OPCGroup group, OPCItem item)
+    throws ComponentNotFoundException, SynchReadException;
+
+  private native void synchWriteItemNative(OPCGroup group, OPCItem item)
+    throws ComponentNotFoundException, SynchWriteException;
   
   /**
-   * Add opc group to the client
+   * Add opc group to the client.
    * <p>
    * <i>note:</i> GroupExistsException - runtime exception
    * 
@@ -65,7 +86,7 @@ public class JOPC extends JCustomOPC implements Runnable {
   }
   
   /**
-   * Remove opc group from the client
+   * Remove opc group from the client.
    * <p>
    * <i>note:</i> GroupExistsException - runtime exception
    * 
@@ -82,7 +103,7 @@ public class JOPC extends JCustomOPC implements Runnable {
   }
   
   /**
-   * Get group by its clientHandle identification
+   * Get group by its clientHandle identification.
    * 
    * @param clientHandle int
    * @return group OPCGroup
@@ -92,7 +113,7 @@ public class JOPC extends JCustomOPC implements Runnable {
   }
   
   /**
-   * Get opc-groups as array
+   * Get opc-groups as array.
    * 
    * @return groups OPCGroup[]
    */
@@ -106,13 +127,189 @@ public class JOPC extends JCustomOPC implements Runnable {
   }
   
   /**
-   * Update native groups representation
+   * Update native groups representation.
    */
   public void updateGroups() {
     updateNativeGroups();
   }
   
+  /**
+   * Register group to opc-server.
+   * 
+   * @param group OPCGroup
+   * 
+   * @throws ComponentNotFoundException
+   * @throws UnableAddGroupException
+   */
+  public void registerGroup(OPCGroup group)  
+      throws ComponentNotFoundException, UnableAddGroupException {
+    try {
+      registerGroupNative(group);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+    catch (UnableAddGroupException e) {
+      throw new UnableAddGroupException(Translate.getString("UNABLE_ADD_GROUP_EXCEPTION") + " " +
+          group.getGroupName());
+    }    
+  }
   
+  /**
+   * Register item (in group) to opc-server.
+   * 
+   * @param group OPCGroup
+   * @param item OPCItem
+   * 
+   * @throws ComponentNotFoundException
+   * @throws UnableAddItemException
+   */
+  public void registerItem(OPCGroup group, OPCItem item) 
+      throws ComponentNotFoundException, UnableAddItemException {
+    try {
+      registerItemNative(group, item);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          item.getItemName());
+    }
+    catch (UnableAddItemException e) {
+      throw new UnableAddItemException(Translate.getString("UNABLE_ADD_ITEM_EXCEPTION") + " " +
+          item.getItemName());
+    }
+  }
+  
+  /**
+   * Register all groups (with items) to opc-server.
+   * <p>
+   * <i>NOTE:</i> It's faster than separate methods registerGroup and registerItem,
+   * but you don't know, which item or group causes the registration exception.
+   *  
+   * @throws UnableAddGroupException
+   * @throws UnableAddItemException
+   */
+  public void registerGroups() 
+      throws UnableAddGroupException, UnableAddItemException {
+    try {
+      registerGroupsNative();
+    }
+    catch (UnableAddGroupException e) {
+      throw new UnableAddGroupException(Translate.getString("UNABLE_ADD_GROUP_EXCEPTION_UNKNOWN"));
+    }
+    catch (UnableAddItemException e) {
+      throw new UnableAddItemException(Translate.getString("UNABLE_ADD_ITEM_EXCEPTION_UNKNOWN"));
+    }
+  }
+  
+  /**
+   * Unregister group from opc-server. 
+   * 
+   * @param group OPCGroup
+   * 
+   * @throws ComponentNotFoundException
+   * @throws UnableRemoveGroupException
+   */
+  public void unregisterGroup(OPCGroup group) 
+      throws ComponentNotFoundException, UnableRemoveGroupException {
+    try {
+      unregisterGroupNative(group);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+    catch (UnableRemoveGroupException e) {
+      throw new UnableRemoveGroupException(Translate.getString("UNABLE_REMOVE_GROUP_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+  }
+
+  /**
+   * Unregister item (in group) from opc-server.
+   * 
+   * @param group OPCGroup
+   * @param item OPCItem
+   * 
+   * @throws ComponentNotFoundException
+   * @throws UnableRemoveItemException
+   */
+  public void unregisterItem(OPCGroup group, OPCItem item) 
+      throws ComponentNotFoundException, UnableRemoveItemException {
+    try {
+      unregisterItemNative(group, item);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          item.getItemName());
+    }
+    catch (UnableRemoveItemException e) {
+      throw new UnableRemoveItemException(Translate.getString("UNABLE_REMOVE_ITEM_EXCEPTION") + " " +
+          item.getItemName());
+    }
+  }
+  
+  /**
+   * Unregister all groups from opc-server (with items).
+   * <p>
+   * <i>NOTE:</i> It's faster than separate methods unregisterGroup and unregisterItem,
+   * but you don't know, which group causes the unregistration exception.
+   * 
+   * @throws UnableRemoveGroupException
+   */
+  public void unregisterGroups() throws UnableRemoveGroupException {
+    try {
+      unregisterGroupsNative();
+    }
+    catch (UnableRemoveGroupException e) {
+      throw new UnableRemoveGroupException(Translate.getString("UNABLE_REMOVE_GROUP_EXCEPTION_UNKNOWN"));
+    }
+  }
+  
+  /**
+   * Synchronous reading of one item in specific group. 
+   * 
+   * @param group OPCGroup
+   * @param item OPCItem
+   * @return item OPCItem
+   * 
+   * @throws ComponentNotFoundException
+   * @throws SynchReadException
+   */
+  public OPCItem synchReadItem(OPCGroup group, OPCItem item) 
+      throws ComponentNotFoundException, SynchReadException {
+    try {
+      return synchReadItemNative(group, item);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION"));
+    }
+    catch (SynchReadException e) {
+      throw new SynchReadException(Translate.getString("SYNCH_READ_EXCEPTION"));
+    }
+  }
+  
+  /**
+   * Synchronous writing of one item in specific group.
+   * 
+   * @param group OPCGroup
+   * @param item OPCItem
+   * 
+   * @throws ComponentNotFoundException
+   * @throws SynchWriteException
+   */
+  public void synchWriteItem(OPCGroup group, OPCItem item) 
+      throws ComponentNotFoundException, SynchWriteException  {
+    try {
+      synchWriteItemNative(group, item);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION"));
+    }
+    catch (SynchWriteException e) {
+      throw new SynchWriteException(Translate.getString("SYNCH_WRITE_EXCEPTION"));
+    }
+  }
   
   public void run() {
   // TODO Auto-generated method stub

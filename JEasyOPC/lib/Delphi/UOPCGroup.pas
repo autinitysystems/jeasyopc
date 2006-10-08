@@ -3,7 +3,7 @@ unit UOPCGroup;
 interface
 
 uses
-  Classes, Windows, SysUtils, OPCtypes, OPCDA, UOPCItem, JNI;
+  Classes, Windows, SysUtils, OPCtypes, OPCDA, UOPCItem, JNI, UOPCExceptions;
 
 type
 
@@ -30,7 +30,7 @@ type
     function getGroupName : string;
     function getItems : TList;
     function getItemByClientHandle(clientHandle : integer) : TOPCItem;
-    function getItemBy(clientHandle : OPCHANDLE) : TOPCItem;
+    function getItemByJavaCode(PEnv: PJNIEnv; item: JObject): TOPCItem;
     function isActive : boolean;
     function getUpdateRate : DWORD;
     function getClientHandle : OPCHANDLE;
@@ -106,15 +106,31 @@ begin
   Result := Items.count;
 end;
 
-function TOPCGroup.getItemBy(clientHandle: OPCHANDLE): TOPCItem;
-var i : integer;
+function TOPCGroup.getItemByJavaCode(PEnv: PJNIEnv; item: JObject): TOPCItem;
+var
+  JVM        : TJNIEnv;
+  FID        : JFieldID;
+  itemClass  : JClass;
+  ich        : integer;
+  itemNative : TOPCItem;
 begin
-  for i:=0 to items.count-1 do
-    if TOPCItem(items[i]).getClientHandle = clientHandle
-    then begin
-      Result := items[i];
-      exit;
-    end;
+  JVM := TJNIEnv.Create(PEnv);
+
+  // get classes
+  itemClass := JVM.GetObjectClass(item);
+
+  // get clientHandles
+  FID := JVM.GetFieldID(itemClass, 'clientHandle', 'I');
+  ich := JVM.GetIntField(item, FID);
+
+  JVM.Free;
+
+  // get native objects
+  itemNative := getItemByClientHandle(ich);
+
+  if itemNative = nil
+  then raise ComponentNotFoundException.create(ComponentNotFoundExceptionText)
+  else Result := itemNative;
 end;
 
 procedure TOPCGroup.setUpdateRate(updateRate: DWORD);

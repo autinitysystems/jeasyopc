@@ -17,5 +17,7 @@
     <Transaction>2006.09.28 13:59:30.984.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCSynch.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPC.pas</Transaction>
     <Transaction>2006.09.28 14:18:53.375.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\Unit1.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCGroup.pas</Transaction>
     <Transaction>2006.09.28 14:20:07.937.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\Unit1.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCItem.pas</Transaction>
+    <Transaction>2006.10.08 13:09:47.500.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\Unit1.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCExceptions.pas</Transaction>
+    <Transaction>2006.10.08 19:49:04.189.pas,K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\Unit1.pas=K:\work\workspace\workspace-gk\JEasyOPC\lib\Delphi\UOPCAsynch.pas</Transaction>
   </Transactions>
 </BorlandProject>

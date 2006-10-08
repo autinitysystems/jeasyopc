@@ -3,53 +3,61 @@ unit UOPC;
 interface
 
 uses
-  Classes, SysUtils, Windows, UCustomOPC, OPCUtils, UOPCGroup, UOPCItem,
-  OPCTypes, JNI;
+  Classes, SysUtils, Windows, ActiveX, JNI, UCustomOPC, OPCUtils, UOPCGroup, UOPCItem,
+  OPCTypes, UOPCAsynch, UOPCExceptions;
 
 type
 
-TOPC = class(TCustomOPC)
-private
-  groups : TList;
-public
-  // constructor (override)
-  constructor create(host, ServerProgID, ServerClientHandle : string);
-  // add group
-  procedure addGroup(group : TOPCGroup);
-  // remove group
-  function  removeGroup(group : TOPCGroup) : TOPCGroup;
-  // get count of groups
-  function getGroupCount : integer;
-  // get group by clientHandle
-  function getGroupByClientHandle(clientHandle : OPCHANDLE) : TOPCGroup;
-  //************************************************
-  // register group to server, throws UnableAddGroupException
-  procedure registerGroup(group : TOPCGroup);
-  // register all groups to server, throws UnableAddGroupException
-  procedure registerGroups;
-  // register item in specific group, throws UnableAddItemException
-  procedure registerGroupItems(group : TOPCGroup; item : TOPCItem); overload;
-  // register items in specific group, throws UnableAddItemException
-  procedure registerGroupItems(group : TOPCGroup); overload;
-  // register all items all groups, throws UnableAddItemException
-  procedure registerAllGroupItems;
-  // unregister group, throws UnableRemoveGroupException
-  procedure unregisterGroup(group : TOPCGroup);
-  // unregister all groups, throws UnableRemoveGroupException
-  procedure unregisterGroups;
-  // unregister item
-  procedure unregisterItem(group : TOPCGroup; item : TOPCItem);
-  //************************************************
-  // update groups from JAVA
-  procedure updateGroups(PEnv: PJNIEnv; Obj: JObject);
-  // store structure of opc to file
-  procedure storeStructureToFile(fn : string);
-  //************************************************
-  // read item (Synch)
-  function synchReadItem(PEnv: PJNIEnv; group: JObject; item: JObject) : JObject;
-  // write item (Synch)
-  procedure synchWriteItem(PEnv: PJNIEnv; group: JObject; item: JObject);
-end;
+  TOPC = class(TCustomOPC)
+  private
+    groups : TList;
+    FDownOPCGroup : EVENT_DownOPCGroup; // download group event (asynchronous mode)
+    // implementation of EVENT_OPCItem
+    procedure DownloadedItems(cHandle_Group, cHandle_Item : OPCHANDLE; Quality : Word;
+      IType : Word; DTime : TDateTime; Value : string);
+    // implementation of EVENT_OPCGroup
+    procedure DownloadedGroup(cHandle_Group : OPCHANDLE);
+  public
+    // constructor (override)
+    constructor create(host, ServerProgID, ServerClientHandle : string);
+    // add group
+    procedure addGroup(group : TOPCGroup);
+    // remove group
+    function  removeGroup(group : TOPCGroup) : TOPCGroup;
+    // get count of groups
+    function getGroupCount : integer;
+    // get group by clientHandle
+    function getGroupByClientHandle(clientHandle : OPCHANDLE) : TOPCGroup;
+    // get group by Java object
+    function getGroupByJavaCode(PEnv: PJNIEnv; group: JObject) : TOPCGroup;
+    //************************************************
+    // register group to server, throws UnableAddGroupException
+    procedure registerGroup(group : TOPCGroup);
+    // register item in specific group, throws UnableAddItemException
+    procedure registerItem(group : TOPCGroup; item : TOPCItem); overload;
+    // register all groups with items to server,
+    // throws UnableAddGroupException, UnableAddItemException
+    procedure registerGroups;
+    // unregister group, throws UnableRemoveGroupException
+    procedure unregisterGroup(group : TOPCGroup);
+    // unregister all groups, throws UnableRemoveGroupException
+    procedure unregisterGroups;
+    // unregister item
+    procedure unregisterItem(group : TOPCGroup; item : TOPCItem);
+    //************************************************
+    // update groups from JAVA
+    procedure updateGroups(PEnv: PJNIEnv; Obj: JObject);
+    // store structure of opc to file
+    procedure storeStructureToFile(fn : string);
+    //************************************************
+    // read item (Synch), throws ComponentNotFoundException, SynchReadException
+    function synchReadItem(PEnv: PJNIEnv; group: JObject; item: JObject) : JObject;
+    // write item (Synch)
+    procedure synchWriteItem(PEnv: PJNIEnv; group: JObject; item: JObject);
+  published
+    //EVENT: get actual groups from OPC
+    property OnDownloadedGroup: EVENT_DownOPCgroup read FDownOPCGroup write FDownOPCGroup;
+  end;
 
 implementation
 
@@ -99,6 +107,35 @@ end;
 
 //------------------------------------------------------------------------------
 
+function TOPC.getGroupByJavaCode(PEnv: PJNIEnv; group: JObject): TOPCGroup;
+var
+  JVM         : TJNIEnv;
+  FID         : JFieldID;
+  groupClass  : JClass;
+  gch         : integer;
+  groupNative : TOPCGroup;
+begin
+  JVM := TJNIEnv.Create(PEnv);
+
+  // get classes
+  groupClass := JVM.GetObjectClass(group);
+
+  // get clientHandles
+  FID := JVM.GetFieldID(groupClass, 'clientHandle', 'I');
+  gch := JVM.GetIntField(group, FID);
+
+  JVM.Free;
+
+  // get native objects
+  groupNative := getGroupByClientHandle(gch);
+
+  if groupNative = nil
+  then raise ComponentNotFoundException.create(ComponentNotFoundExceptionText)
+  else Result := groupNative;
+end;
+
+//------------------------------------------------------------------------------
+
 function TOPC.getGroupCount: integer;
 begin
   Result := groups.count;
@@ -118,38 +155,35 @@ end;
 //------------------------------------------------------------------------------
 
 procedure TOPC.registerGroups;
-var i : integer;
+var i, j  : integer;
+    items : TList;
+    group : TOPCGroup;
+    item  : TOPCItem;
 begin
-  for i:=0 to groups.count-1 do registerGroup(groups[i]);
+  // register groups
+  for i:=0 to groups.count-1 do
+  begin
+    group := TOPCGroup(groups[i]);
+    registerGroup(group);
+    items := group.getItems;
+    // register items in group
+    for j:=0 to items.count-1 do
+    begin
+      item := TOPCItem(items[j]);
+      registerItem(group, item);
+    end;
+  end;
 end;
 
 //------------------------------------------------------------------------------
 
-procedure TOPC.registerGroupItems(group: TOPCGroup);
-var i : integer;
-begin
-  // register all items in a specific group
-  for i:=0 to group.getItemCount-1 do
-    registerGroupItems(group, TOPCItem(group.getItems[i]));
-end;
-
-//------------------------------------------------------------------------------
-
-procedure TOPC.registerGroupItems(group : TOPCGroup; item : TOPCItem);
+procedure TOPC.registerItem(group : TOPCGroup; item : TOPCItem);
 begin
   HR := GroupAddItem(group.GroupIf, item.getItemName, item.getClientHandle,
-    item.getDataType, item.isActive, item.getAccessPath,
-    item.ItemHandle, item.ItemType);
+    VT_EMPTY, item.isActive, item.getAccessPath,
+    item.ItemHandle, item.ItemType); //item.getDataType
   if not Succeeded(HR)
   then raise UnableAddItemException.create(item.getItemName);
-end;
-
-//------------------------------------------------------------------------------
-
-procedure TOPC.registerAllGroupItems;
-var i : integer;
-begin
-  for i:=0 to groups.count-1 do registerGroupItems(TOPCGroup(groups[i]));
 end;
 
 //------------------------------------------------------------------------------
@@ -176,7 +210,7 @@ procedure TOPC.unregisterItem(group: TOPCGroup; item: TOPCItem);
 begin
   HR := GroupRemoveItem(group.GroupIf, item.ItemHandle);
   if not Succeeded(HR)
-  then raise UnableRemoveGroupException.create(group.getGroupName);
+  then raise UnableRemoveItemException.create(item.getItemName);
 end;
 
 //------------------------------------------------------------------------------
@@ -295,60 +329,70 @@ end;
 
 function TOPC.synchReadItem(PEnv: PJNIEnv; group, item: JObject): JObject;
 var
-  JVM         : TJNIEnv;
-  FID         : JFieldID;
-  groupClass  : JClass;
-  itemClass   : JClass;
-  gch         : integer;
-  ich         : integer;
   groupNative : TOPCGroup;
   itemNative  : TOPCItem;
   value       : string;
   quality     : word;
   itm         : JObject;
 begin
-  JVM := TJNIEnv.Create(PEnv);
-
-  // get classes
-  groupClass := JVM.GetObjectClass(group);
-  itemClass := JVM.GetObjectClass(item);
-
-  // get clientHandles
-  FID := JVM.GetFieldID(groupClass, 'clientHandle', 'I');
-  gch := JVM.GetIntField(group, FID);
-  FID := JVM.GetFieldID(itemClass, 'clientHandle', 'I');
-  ich := JVM.GetIntField(item, FID);
-
-  // get native objects
-  groupNative := getGroupByClientHandle(gch);
-  itemNative := groupNative.getItemByClientHandle(ich);
-
-  if ((groupNative = nil) or (itemNative = nil))
-  then begin
-    // throw exception
-    exit;
-  end;
+  groupNative := getGroupByJavaCode(PEnv, group);
+  itemNative  := groupNative.getItemByJavaCode(PEnv, item);
 
   HR := ReadOPCGroupItemValue(groupNative.GroupIf, itemNative.ItemHandle, value, quality);
   if Succeeded(HR)
   then begin
+    itemNative.setTimeStamp(Now); // set actual timeStamp (System time)
     itemNative.setItemValue(value);
     itemNative.setItemQuality(quality);
     itm := itemNative.clone(PEnv, item);
     itemNative.commit(PEnv, itm);
     Result := itm;
   end
-  else begin
-    // throw exception
-    exit;
-  end;
+  else raise SynchReadException.create(SynchReadExceptionText);
 end;
 
 //------------------------------------------------------------------------------
 
 procedure TOPC.synchWriteItem(PEnv: PJNIEnv; group, item: JObject);
+var
+  groupNative : TOPCGroup;
+  itemNative  : TOPCItem;
 begin
-  // not yet
+  groupNative := getGroupByJavaCode(PEnv, group);
+  itemNative  := groupNative.getItemByJavaCode(PEnv, item);
+  itemNative.update(PEnv, item); // set write parameters
+
+  HR := WriteOPCGroupItemValue(groupNative.GroupIf, itemNative.ItemHandle, itemNative.getItemValue);
+  if not Succeeded(HR)
+  then raise SynchWriteException.create(SynchWriteExceptionText);
 end;
+
+//------------------------------------------------------------------------------
+// asynch event implementation
+procedure TOPC.DownloadedGroup(cHandle_Group: OPCHANDLE);
+begin
+  // call user event for downloaded cHandle_Group
+  if Assigned(OnDownloadedGroup)
+  then FDownOPCGroup(cHandle_Group, getGroupByClientHandle(cHandle_Group));
+end;
+
+//------------------------------------------------------------------------------
+// asynch event implementation
+procedure TOPC.DownloadedItems(cHandle_Group, cHandle_Item: OPCHANDLE; Quality,
+  IType: Word; DTime: TDateTime; Value: string);
+var item : TOPCItem;
+begin
+  // set data to item
+  item := getGroupByClientHandle(cHandle_Group).getItemByClientHandle(cHandle_Item);
+  if item <> nil
+  then begin
+    item.setItemQuality(Quality);
+    item.setItemType(IType);
+    item.setTimeStamp(DTime);
+    item.setItemValue(value);
+  end;
+end;
+
+//------------------------------------------------------------------------------
 
 end.

@@ -26,21 +26,12 @@ uses
   OPCenum in 'OPCenum.pas',
   UOPC in 'UOPC.pas',
   UOPCGroup in 'UOPCGroup.pas',
-  UOPCItem in 'UOPCItem.pas';
+  UOPCItem in 'UOPCItem.pas',
+  UOPCExceptions in 'UOPCExceptions.pas',
+  UOPCAsynch in 'UOPCAsynch.pas';
 
 const
   ID = 'id'; // signification of id client
-  EXCPKG = 'javafish/clients/opc/exception/'; // standard exception package
-
-  // java exceptions definition
-  SConnectivityException = EXCPKG + 'ConnectivityException';
-  SHostException = EXCPKG + 'HostException';
-  SNotFoundServersException = EXCPKG + 'NotFoundServersException';
-  SUnableIBrowseException = EXCPKG + 'UnableIBrowseException';
-  SUnableBrowseBranchException = EXCPKG + 'UnableBrowseBranchException';
-  SUnableBrowseLeafException = EXCPKG + 'UnableBrowseLeafException';
-  SUnableAddGroupException = EXCPKG + 'UnableAddGroupException';
-  SUnableAddItemException = EXCPKG + 'UnableAddItemException';
 
   // java JCustomOPC classes => Delphi class representations
   JCustomOPC_ClassName = 'javafish.clients.opc.JCustomOPC';
@@ -337,8 +328,149 @@ end;
 function Java_javafish_clients_opc_JOPC_synchReadItemNative(PEnv: PJNIEnv;
   Obj: JObject; group : JObject; item : JObject) : JObject; stdcall;
 begin
-  // synchronous reading of specific group->item
-  Result := TOPC(aopc[GetInt(ID, PEnv, Obj)]).synchReadItem(PEnv, group, item);
+  try
+    Result := TOPC(aopc[GetInt(ID, PEnv, Obj)]).synchReadItem(PEnv, group, item);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:SynchReadException do
+      throwException(PEnv, SSynchReadException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_synchWriteItemNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject; item : JObject); stdcall;
+begin
+  try
+    TOPC(aopc[GetInt(ID, PEnv, Obj)]).synchWriteItem(PEnv, group, item);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:SynchWriteException do
+      throwException(PEnv, SSynchWriteException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_registerGroupNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
+begin
+  // register group to the opc-server
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    OPC.registerGroup(groupNative);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:UnableAddGroupException do
+      throwException(PEnv, SUnableAddGroupException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_registerItemNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject; item : JObject); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
+    itemNative  : TOPCItem;
+begin
+  // register group to the opc-server
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    itemNative  := groupNative.getItemByJavaCode(PEnv, item);
+    OPC.registerItem(groupNative, itemNative);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:UnableAddItemException do
+      throwException(PEnv, SUnableAddItemException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_registerGroupsNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject; item : JObject); stdcall;
+var OPC : TOPC;
+begin
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    // register all groups
+    OPC.updateGroups(PEnv, Obj);
+    OPC.registerGroups;
+  except
+    on E:UnableAddGroupException do
+      throwException(PEnv, SUnableAddGroupException, PAnsiChar(E.Message));
+    on E:UnableAddItemException do
+      throwException(PEnv, SUnableAddItemException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_unregisterGroupNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
+begin
+  // register group to the opc-server
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    OPC.unregisterGroup(groupNative);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:UnableRemoveGroupException do
+      throwException(PEnv, SUnableRemoveGroupException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_unregisterItemNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject; item : JObject); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
+    itemNative  : TOPCItem;
+begin
+  // register group to the opc-server
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    itemNative  := groupNative.getItemByJavaCode(PEnv, item);
+    OPC.unregisterItem(groupNative, itemNative);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:UnableRemoveItemException do
+      throwException(PEnv, SUnableRemoveItemException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_unregisterGroupsNative(PEnv: PJNIEnv;
+  Obj: JObject); stdcall;
+var OPC : TOPC;
+begin
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    // register all groups
+    OPC.updateGroups(PEnv, Obj);
+    OPC.unregisterGroups;
+  except
+    on E:UnableRemoveGroupException do
+      throwException(PEnv, SUnableRemoveGroupException, PAnsiChar(E.Message));
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -682,6 +814,13 @@ exports
   // JOPC methods
   Java_javafish_clients_opc_JOPC_addNativeGroup,
   Java_javafish_clients_opc_JOPC_updateNativeGroups,
-  Java_javafish_clients_opc_JOPC_synchReadItemNative;
+  Java_javafish_clients_opc_JOPC_registerGroupNative,
+  Java_javafish_clients_opc_JOPC_registerItemNative,
+  Java_javafish_clients_opc_JOPC_registerGroupsNative,
+  Java_javafish_clients_opc_JOPC_unregisterGroupNative,
+  Java_javafish_clients_opc_JOPC_unregisterItemNative,
+  Java_javafish_clients_opc_JOPC_unregisterGroupsNative,
+  Java_javafish_clients_opc_JOPC_synchReadItemNative,
+  Java_javafish_clients_opc_JOPC_synchWriteItemNative;
 begin
 end.

@@ -42,6 +42,7 @@ type
     procedure setTimeStamp(timeStamp : TDateTime);
     procedure setItemQuality(quality : Word);
     procedure setActive(active : boolean);
+    procedure setItemType(itemType : TVarType);
   end;
 
 implementation
@@ -100,6 +101,11 @@ end;
 procedure TOPCItem.setItemValue(value: string);
 begin
   itemValue := value;
+end;
+
+procedure TOPCItem.setItemType(itemType: TVarType);
+begin
+  self.ItemType := itemType;
 end;
 
 procedure TOPCItem.setItemQuality(quality: Word);

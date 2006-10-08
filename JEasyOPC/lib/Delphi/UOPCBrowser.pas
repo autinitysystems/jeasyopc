@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, ActiveX, IdIcmpClient, UCustomOPC, OPCEnum, OPCDA,
-  OPCutils, Windows, OPCtypes;
+  OPCutils, Windows, OPCtypes, UOPCExceptions;
 
 const
   WAITIME = 300;

@@ -3,30 +3,7 @@ unit UCustomOPC;
 interface
 
 uses
-  Classes, SysUtils, Forms, ActiveX, ComObj, UReport, OPCDA;
-
-type
-  // Global exceptions
-  ConnectivityException = class(Exception);       // error connection
-  HostException = class(Exception);               // no host found
-  NotFoundServersException = class(Exception);    // no opc servers found
-  UnableIBrowseException = class(Exception);      // IBrowse not initialize
-  UnableBrowseBranchException = class(Exception); // browse branch error
-  UnableBrowseLeafException = class(Exception);   // browse leaf (item) error
-  UnableAddGroupException = class(Exception);     // add group error
-  UnableAddItemException = class(Exception);      // add item to group error
-  UnableRemoveGroupException = class(Exception);  // remove group error
-  UnableRemoveItemException = class(Exception);   // remove item error
-
-const
-  // exceptions text
-  UnableBrowseBranchExceptionText = 'Unable to browse a branch.';
-  UnableBrowseLeafExceptionText = 'Unable to browse a leaf (item).';
-  UnableIBrowseExceptionText = 'Unable to initialize IBrowse.';
-  ConnectivityExceptionText = 'Connection fails to OPC Server.';
-  HostExceptionText = 'Host not found: ';
-  NotFoundServersExceptionText = 'OPC servers not found on ';
-  UnableAddGroupExceptionText = 'Unable to add group to server:';
+  Classes, SysUtils, Forms, ActiveX, ComObj, UReport, OPCDA, UOPCExceptions;
 
 type
 
