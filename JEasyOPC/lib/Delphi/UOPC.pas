@@ -3,14 +3,18 @@ unit UOPC;
 interface
 
 uses
-  Classes, SysUtils, Windows, ActiveX, JNI, UCustomOPC, OPCUtils, UOPCGroup, UOPCItem,
-  OPCTypes, UOPCAsynch, UOPCExceptions;
+  Classes, SysUtils, Windows, Forms, ActiveX, JNI, UCustomOPC, OPCUtils, UOPCGroup, UOPCItem,
+  OPCTypes, UOPCAsynch, UOPCExceptions, UOPCQueue;
 
 type
 
   TOPC = class(TCustomOPC)
   private
-    groups : TList;
+    AsyncConnection : Longint;          // type of communication
+    AdviseSink      : TOPCAdviseSink;   // reference TOPCAdviseSink
+    OPCDataCallback : TOPCDataCallback; // reference TOPCDataCallback
+    OPCQueue        : TOPCQueue;        // asynch queue
+    groups : TList;                     // opc-groups
     FDownOPCGroup : EVENT_DownOPCGroup; // download group event (asynchronous mode)
     // implementation of EVENT_OPCItem
     procedure DownloadedItems(cHandle_Group, cHandle_Item : OPCHANDLE; Quality : Word;
@@ -49,11 +53,23 @@ type
     procedure updateGroups(PEnv: PJNIEnv; Obj: JObject);
     // store structure of opc to file
     procedure storeStructureToFile(fn : string);
+    // store group to file
+    procedure storeGroupToFile(group : TOPCGroup; fn : string);
     //************************************************
     // read item (Synch), throws ComponentNotFoundException, SynchReadException
     function synchReadItem(PEnv: PJNIEnv; group: JObject; item: JObject) : JObject;
     // write item (Synch)
     procedure synchWriteItem(PEnv: PJNIEnv; group: JObject; item: JObject);
+    //************************************************
+    function getDefaultQueue : TOPCQueue;
+    // activate asynch 1.0 reading (AdviseSink)
+    procedure asynch10Read(group : TOPCGroup);
+    // activate asynch 2.0 reading (Callback)
+    procedure asynch20Read(group : TOPCGroup);
+    // deactive asynch 1.0 reading (AdviseSink)
+    procedure asynch10Unadvise(group : TOPCGroup);
+    // deactive asynch 2.0 reading (Callback)
+    procedure asynch20Unadvise(group : TOPCGroup);
   published
     //EVENT: get actual groups from OPC
     property OnDownloadedGroup: EVENT_DownOPCgroup read FDownOPCGroup write FDownOPCGroup;
@@ -67,6 +83,9 @@ constructor TOPC.create(host, ServerProgID, ServerClientHandle: string);
 begin
   inherited create(host, ServerProgID, ServerClientHandle);
   groups := TList.create;
+  OPCQueue := TOPCQueue.create;
+  // use for default events of asynchronous reading
+  self.OnDownloadedGroup := OPCQueue.downloadOPCGroup;
 end;
 
 //------------------------------------------------------------------------------
@@ -327,6 +346,45 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure TOPC.storeGroupToFile(group : TOPCGroup; fn: string);
+var foo : TStringList;
+    i,j   : integer;
+    item  : TOPCItem;
+    items : TList;
+begin
+  foo := TStringList.Create;
+  foo.Add('GROUP: ' + group.getGroupName);
+  foo.Add('GROUP clientHandle: ' + IntToStr(group.getClientHandle));
+  foo.Add('GROUP updateRate: ' + IntToStr(group.getUpdateRate));
+  foo.Add('GROUP active: ' + BoolToStr(group.isActive, true));
+  foo.Add('GROUP percentDeadBand: ' + FloatToStr(group.getPercentDeadBand));
+
+  items := group.getItems;
+  if items <> nil
+  then begin
+    if items.Count > 0
+    then begin
+      for j:=0 to items.Count-1 do
+      begin
+        item := TOPCItem(items[j]);
+        foo.Add('GROUP.Item: ' + item.getItemName);
+        foo.Add('GROUP.Item clientHandle: ' + IntToStr(item.getClientHandle));
+        foo.Add('GROUP.Item accessPath: ' + item.getAccessPath);
+        foo.Add('GROUP.Item itemValue: ' + item.getItemValue);
+        foo.Add('GROUP.Item active: ' + BoolToStr(item.isActive, true));
+        foo.Add('GROUP.Item dataType: ' + IntToStr(item.getDataType));
+        //foo.Add('GROUP.Item quality: ' + BoolToStr(item.getItemQuality, true));
+      end;
+    end else foo.Add('ITEMS: empty group');
+  end
+  else foo.Add('ITEMS: empty group');
+  // store to file
+  foo.SaveToFile(fn);
+  foo.Free;
+end;
+
+//------------------------------------------------------------------------------
+
 function TOPC.synchReadItem(PEnv: PJNIEnv; group, item: JObject): JObject;
 var
   groupNative : TOPCGroup;
@@ -394,5 +452,53 @@ begin
 end;
 
 //------------------------------------------------------------------------------
+
+procedure TOPC.asynch10Read(group: TOPCGroup);
+begin
+  // create data object and active thread of group
+  AdviseSink := TOPCAdviseSink.Create;
+  AdviseSink.OnDownloadedItem  := DownloadedItems;
+  AdviseSink.OnDownloadedGroup := DownloadedGroup;
+  HR := GroupAdviseTime(group.GroupIf, AdviseSink, AsyncConnection);
+  if not Succeeded(HR)
+  then raise Asynch10ReadException.create(Asynch10ReadExceptionText);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TOPC.asynch20Read(group: TOPCGroup);
+begin
+  OPCDataCallback := TOPCDataCallback.Create;
+  OPCDataCallback.OnDownloadedItem  := DownloadedItems;
+  OPCDataCallback.OnDownloadedGroup := DownloadedGroup;
+  HR := GroupAdvise2(group.GroupIf, OPCDataCallback, AsyncConnection);
+  if not Succeeded(HR)
+  then raise Asynch20ReadException.create(Asynch20ReadExceptionText);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TOPC.asynch10Unadvise(group: TOPCGroup);
+begin
+  HR := GroupUnadvise(group.GroupIf, AsyncConnection);
+  if not Succeeded(HR)
+  then Asynch10UnadviseException.create(Asynch10UnadviseExceptionText);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TOPC.asynch20Unadvise(group: TOPCGroup);
+begin
+  HR := GroupUnadvise2(group.GroupIf, AsyncConnection);
+  if not Succeeded(HR)
+  then Asynch20UnadviseException.create(Asynch20UnadviseExceptionText);
+end;
+
+//------------------------------------------------------------------------------
+
+function TOPC.getDefaultQueue: TOPCQueue;
+begin
+  Result := OPCQueue;
+end;
 
 end.

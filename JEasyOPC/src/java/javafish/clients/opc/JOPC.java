@@ -1,10 +1,20 @@
 package javafish.clients.opc;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 
+import javax.swing.event.EventListenerList;
+
+import javafish.clients.opc.asynch.AsynchEvent;
+import javafish.clients.opc.asynch.OPCAsynchGroupListener;
 import javafish.clients.opc.component.OPCGroup;
 import javafish.clients.opc.component.OPCItem;
+import javafish.clients.opc.exception.Asynch10ReadException;
+import javafish.clients.opc.exception.Asynch10UnadviseException;
+import javafish.clients.opc.exception.Asynch20ReadException;
+import javafish.clients.opc.exception.Asynch20UnadviseException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.GroupExistsException;
 import javafish.clients.opc.exception.SynchReadException;
@@ -26,7 +36,13 @@ public class JOPC extends JCustomOPC implements Runnable {
   
   /* opc groups storage */
   protected LinkedHashMap<Integer, OPCGroup> groups;
-
+  
+  /* asynchronous group event listeners */
+  protected EventListenerList asynchGroupListeners;
+  
+  /* package counter */
+  private int idpkg = 0;
+  
   /**
    * Create new instance of OPC Client.
    * 
@@ -36,9 +52,14 @@ public class JOPC extends JCustomOPC implements Runnable {
    */
   public JOPC(String host, String serverProgID, String serverClientHandle) {
     super(host, serverProgID, serverClientHandle);
+    asynchGroupListeners = new EventListenerList();
     groups = new LinkedHashMap<Integer, OPCGroup>();
     thread = new Thread(this);
   }
+  
+  ///////////////////////////////////////////////////////////////////////
+  // NATIVE CODE
+  ////////////////
   
   private native void addNativeGroup(OPCGroup group);
   
@@ -68,15 +89,41 @@ public class JOPC extends JCustomOPC implements Runnable {
   private native void synchWriteItemNative(OPCGroup group, OPCItem item)
     throws ComponentNotFoundException, SynchWriteException;
   
+  private native void asynch10ReadNative(OPCGroup group)
+    throws ComponentNotFoundException, Asynch10ReadException;
+  
+  private native void asynch20ReadNative(OPCGroup group)
+    throws ComponentNotFoundException, Asynch20ReadException;
+  
+  private native void asynch10UnadviseNative(OPCGroup group)
+    throws ComponentNotFoundException, Asynch10UnadviseException;
+  
+  private native void asynch20UnadviseNative(OPCGroup group)
+    throws ComponentNotFoundException, Asynch20UnadviseException;
+  
+  private native OPCGroup getDownloadGroupNative();
+  
+  ////////////////////////////////////////////////////////////////////////
+  
+  /**
+   * Generate new clientHandle for group
+   * 
+   * @return int clientHandle
+   */
+  public int getNewGroupClientHandle() {
+    return groups.size();
+  }
+  
   /**
    * Add opc group to the client.
    * <p>
-   * <i>note:</i> GroupExistsException - runtime exception
+   * <i>NOTE:</i> GroupExistsException - runtime exception
    * 
    * @param group OPCGroup
    */
   public void addGroup(OPCGroup group) {
     if (!groups.containsKey(new Integer(group.getClientHandle()))) {
+      group.generateClientHandleByOwner(this); // set clientHandle
       addNativeGroup(group);
       groups.put(new Integer(group.getClientHandle()), group);    
     } else { // throw exception
@@ -88,7 +135,7 @@ public class JOPC extends JCustomOPC implements Runnable {
   /**
    * Remove opc group from the client.
    * <p>
-   * <i>note:</i> GroupExistsException - runtime exception
+   * <i>NOTE:</i> GroupExistsException - runtime exception
    * 
    * @param group OPCGroup
    */
@@ -131,6 +178,47 @@ public class JOPC extends JCustomOPC implements Runnable {
    */
   public void updateGroups() {
     updateNativeGroups();
+  }
+  
+  /**
+   * Add asynch-group listener
+   * 
+   * @param listener OPCReportListener
+   */
+  public void addAsynchGroupListener(OPCAsynchGroupListener listener) {
+    List list = Arrays.asList(asynchGroupListeners.getListenerList());
+    if (list.contains(listener) == false) {
+      asynchGroupListeners.add(OPCAsynchGroupListener.class, listener);
+    }
+  }
+
+  /**
+   * Remove asynch-group listener
+   * 
+   * @param listener OPCReportListener
+   */
+  public void removeAsynchGroupListener(OPCAsynchGroupListener listener) {
+    List list = Arrays.asList(asynchGroupListeners.getListenerList());
+    if (list.contains(listener) == true) {
+      asynchGroupListeners.remove(OPCAsynchGroupListener.class, listener);
+    }
+  }
+  
+  /**
+   * Send opc-group in asynchronous mode (1.0, 2.0)
+   * 
+   * @param group OPCGroup
+   */
+  protected void sendOPCGroup(OPCGroup group) {
+    Object[] list = asynchGroupListeners.getListenerList();
+    for (int i = 0; i < list.length; i += 2) {
+      Class listenerClass = (Class)(list[i]);
+      if (listenerClass == OPCAsynchGroupListener.class) {
+        OPCAsynchGroupListener listener = (OPCAsynchGroupListener)(list[i + 1]);
+        AsynchEvent event = new AsynchEvent(this, idpkg++, group);
+        listener.getAsynchEvent(event);
+      }
+    }
   }
   
   /**
@@ -282,7 +370,8 @@ public class JOPC extends JCustomOPC implements Runnable {
       return synchReadItemNative(group, item);
     }
     catch (ComponentNotFoundException e) {
-      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION"));
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          item.getItemName());
     }
     catch (SynchReadException e) {
       throw new SynchReadException(Translate.getString("SYNCH_READ_EXCEPTION"));
@@ -304,13 +393,113 @@ public class JOPC extends JCustomOPC implements Runnable {
       synchWriteItemNative(group, item);
     }
     catch (ComponentNotFoundException e) {
-      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION"));
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          item.getItemName());
     }
     catch (SynchWriteException e) {
       throw new SynchWriteException(Translate.getString("SYNCH_WRITE_EXCEPTION"));
     }
   }
   
+  /**
+   * Asynchronous 1.0 reading (AdviseSink) - start 
+   * 
+   * @param group OPCGroup
+   * 
+   * @throws ComponentNotFoundException
+   * @throws Asynch10ReadException
+   */
+  public void asynch10Read(OPCGroup group) throws ComponentNotFoundException, Asynch10ReadException {
+    try {
+      asynch10ReadNative(group);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+    catch (Asynch10ReadException e) {
+      throw new Asynch10ReadException(Translate.getString("ASYNCH_10_READ_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+  }
+  
+  /**
+   * Asynchronous 2.0 reading (Callback) - start 
+   * 
+   * @param group OPCGroup
+   * @throws ComponentNotFoundException
+   * @throws Asynch20ReadException
+   */
+  public void asynch20Read(OPCGroup group) throws ComponentNotFoundException, Asynch20ReadException {
+    try {
+      asynch20ReadNative(group);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+    catch (Asynch20ReadException e) {
+      throw new Asynch20ReadException(Translate.getString("ASYNCH_20_READ_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+  }
+  
+  /**
+   * Asynchronous 1.0 unadvise reading (AdviseSink) - terminate 
+   * 
+   * @param group OPCGroup
+   * @throws ComponentNotFoundException
+   * @throws Asynch10UnadviseException
+   */
+  public void asynch10Unadvise(OPCGroup group) throws ComponentNotFoundException, Asynch10UnadviseException {
+    try {
+      asynch10UnadviseNative(group);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+    catch (Asynch10UnadviseException e) {
+      throw new Asynch10UnadviseException(Translate.getString("ASYNCH_20_UNADVISE_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+  }
+  
+  
+  /**
+   * Asynchronous 2.0 unadvise reading (Callback) - terminate 
+   * 
+   * @param group OPCGroup
+   * 
+   * @throws ComponentNotFoundException
+   * @throws Asynch20UnadviseException
+   */
+  public void asynch20Unadvise(OPCGroup group) throws ComponentNotFoundException, Asynch20UnadviseException {
+    try {
+      asynch20UnadviseNative(group);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+    catch (Asynch20UnadviseException e) {
+      throw new Asynch20UnadviseException(Translate.getString("ASYNCH_20_UNADVISE_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+  }
+  
+  /**
+   * Get downloaded group (clone) from opc-server
+   * <p>
+   * <i>NOTE:</i> Asynchronous mode, OPC-Queue of downloaded groups,
+   * OPCGroup can be NULL. 
+   * 
+   * @return group OPCGroup
+   */
+  public OPCGroup getDownloadGroup() {
+    return getDownloadGroupNative();
+  }
+
   public void run() {
   // TODO Auto-generated method stub
   }

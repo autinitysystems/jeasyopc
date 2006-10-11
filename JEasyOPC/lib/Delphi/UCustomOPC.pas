@@ -3,7 +3,7 @@ unit UCustomOPC;
 interface
 
 uses
-  Classes, SysUtils, Forms, ActiveX, ComObj, UReport, OPCDA, UOPCExceptions;
+  Classes, SysUtils, Forms, ActiveX, ComObj, OPCDA, UOPCExceptions;
 
 type
 
@@ -20,19 +20,15 @@ type
     HR                 : HResult;          // COM results
     // COM object of OPC server
     ServerIf           : IOPCServer;       // server information
-    // report information
-    Report             : TReport;          // logging
-    // set status message
-    procedure setStatusMessage(const idReport : integer; const report: string);
   public
     // create OPC client
     constructor Create(host, ServerProgID, ServerClientHandle : string);
-    // get logger
-    function getReport : TReport;
     // connect to server
     procedure connect; virtual;
     // disconnect server
     procedure disconnect;
+    // get ServerIf interface
+    function getServerIf : IOPCServer;
     // get server status
     function getServerStatus : boolean;
   end;
@@ -55,7 +51,6 @@ begin
   Self.host               := host;
   Self.serverProgID       := serverProgID;
   Self.serverClientHandle := serverClientHandle;
-  Report                  := TReport.Create;
 end;
 
 procedure TCustomOPC.connect;
@@ -90,15 +85,9 @@ begin
   Result := Succeeded(ServerIf.getStatus(ppServerStatus));
 end;
 
-function TCustomOPC.getReport: TReport;
+function TCustomOPC.getServerIf: IOPCServer;
 begin
-  Result := Report;
-end;
-
-procedure TCustomOPC.setStatusMessage(const idReport: integer;
-  const report: string);
-begin
-  self.Report.setStatusMessage(idReport, report);
+  Result := ServerIf;
 end;
 
 end.

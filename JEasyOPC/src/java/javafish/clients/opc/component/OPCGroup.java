@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 
+import javafish.clients.opc.JOPC;
 import javafish.clients.opc.exception.ItemExistsException;
 import javafish.clients.opc.lang.Translate;
 
@@ -11,8 +12,6 @@ import javafish.clients.opc.lang.Translate;
  * OPC Group 
  */
 public class OPCGroup implements Cloneable {
-  private static int generateHandle = 0;
-  
   /* ID of group (do not modify) */
   private int clientHandle;
   
@@ -41,7 +40,7 @@ public class OPCGroup implements Cloneable {
    */
   public OPCGroup(String groupName, boolean active, int updateRate, float percentDeadBand) {
     items = new LinkedHashMap<Integer, OPCItem>();
-    clientHandle = generateHandle();    
+    clientHandle = -1; // not assigned
     this.groupName = groupName;
     this.active = active;
     this.updateRate = updateRate;
@@ -49,15 +48,23 @@ public class OPCGroup implements Cloneable {
   }
   
   /**
-   * Generate client handle identification.
-   * Must be unique.
+   * Generate clientHandle by its owner
    * 
-   * @return int
+   * @param opc JOPC
    */
-  private static int generateHandle() {
-    return generateHandle++;
+  public void generateClientHandleByOwner(JOPC opc) {
+    clientHandle = opc.getNewGroupClientHandle();
   }
-
+  
+  /**
+   * Generate new clientHandle for its item
+   * 
+   * @return clientHandle int
+   */
+  public int getNewItemClientHandle() {
+    return items.size();
+  }
+  
   /**
    * Test activity of group
    * 
@@ -108,6 +115,7 @@ public class OPCGroup implements Cloneable {
    */
   public void addItem(OPCItem item) {
     if (!items.containsKey(new Integer(item.getClientHandle()))) {
+      item.generateClientHandleByOwner(this);
       items.put(new Integer(item.getClientHandle()), item);
     } else { // throw exception
       throw new ItemExistsException(Translate.getString("ITEM_EXISTS_EXCEPTION") + " " +

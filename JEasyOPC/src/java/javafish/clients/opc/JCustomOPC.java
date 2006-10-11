@@ -10,7 +10,6 @@ import javafish.clients.opc.lang.Translate;
 import javafish.clients.opc.property.PropertyLoader;
 import javafish.clients.opc.report.LogEvent;
 import javafish.clients.opc.report.LogMessage;
-import javafish.clients.opc.report.OPCReport;
 import javafish.clients.opc.report.OPCReportListener;
 
 import javax.swing.event.EventListenerList;
@@ -27,9 +26,6 @@ import org.apache.log4j.PropertyConfigurator;
  */
 abstract public class JCustomOPC implements OPCReportListener {
   
-  // fixed constants
-  public static final int WAITIME = 20; // ms 
-  
   /** host server */
   protected String host;
   
@@ -42,14 +38,14 @@ abstract public class JCustomOPC implements OPCReportListener {
   /** use log4j messaging */
   protected boolean useStandardReporting = true;
   
+  /** counter of messages */
+  protected int logPkg = 0;
+  
   /** log4j logger */
   protected final Logger logger = Logger.getLogger(getClass());
   
   /** properties file */
   protected Properties props = PropertyLoader.loadProperties(JCustomOPC.class);
-
-  /** report guardian */
-  protected OPCReportGuardian report;
 
   /** report event listeners */
   protected EventListenerList reportListeners = new EventListenerList();
@@ -85,19 +81,6 @@ abstract public class JCustomOPC implements OPCReportListener {
     if (useStandardReporting) {
       addOPCReportListener(this);
     }
-    
-    // create logging daemon
-    report = new OPCReportGuardian();
-    report.start();
-  }
-
-  /**
-   * Return Description of OPC Server
-   * 
-   * @return String
-   */
-  public String getFullOPCServerName() {
-    return host + "//" + serverProgID + " (" + serverClientHandle + ")";
   }
 
   /**
@@ -124,19 +107,21 @@ abstract public class JCustomOPC implements OPCReportListener {
   private native void disconnectServer();
 
   /**
-   * Get native OPC Client Report (status)
-   * 
-   * @return OPCReport
-   */
-  private native OPCReport getReport();
-
-  /**
    * Get OPC server status,
    * if connection between server and client still alive
    * 
    * @return server is OK, boolean
    */
   private native boolean getStatus();
+  
+  /**
+   * Return Description of OPC Server
+   * 
+   * @return String
+   */
+  public String getFullOPCServerName() {
+    return host + "//" + serverProgID + " (" + serverClientHandle + ")";
+  }
 
   /**
    * Return ID of OPC Client
@@ -239,102 +224,30 @@ abstract public class JCustomOPC implements OPCReportListener {
   }
   
   /**
-   * Class for OPC Reporting
+   * Send log message to listeners
+   * 
+   * @param LogMessage message
    */
-  protected class OPCReportGuardian extends Thread {
-    private boolean active = false;
-
-    /**
-     * Create Deamon thread
-     */
-    public OPCReportGuardian() {
-      setDaemon(true);
-    }
-
-    /**
-     * Terminate reporting thread
-     */
-    synchronized public void terminate() {
-      active = false;
-      notifyAll();
-    }
-    
-    /**
-     * Return level by id-message
-     * <p>
-     * Level:
-     *  100 - 199 = error message
-     *  200 - 299 = info message
-     *  300 - 399 = debug message
-     * 
-     * @param id int
-     * @return int level type
-     */
-    private int assignLevel(int id) {
-      if (id >= 100 && id < 200) {
-        return LogMessage.ERROR;
-      } else if (id >= 200 && id < 400) {
-        return LogMessage.INFO;
-      } else if (id >= 400) {
-        return LogMessage.DEBUG;
-      }
-      return LogMessage.DEBUG;
-    }
-    
-    /**
-     * Prepare log-message
-     * (use translation property file)
-     * 
-     * @param report OPCReport (raw message from native code)
-     * @return message LogMessage
-     */
-    private LogMessage prepareLogMessage(OPCReport report) {
-      int id = report.getIdReport();
-      // translate message
-      String ids = String.valueOf(id);
-      String info = Translate.getString("ID" + ids);
-      // add adition message from native code
-      info += " " + report.getReport();
-      return new LogMessage(new Date(), assignLevel(id), id, info);
-    }
-    
-    /**
-     * Send log message to listeners
-     * 
-     * @param report OPCReport (raw report from native code)
-     */
-    private void sendLogMessage(OPCReport report) {
-      Object[] list = reportListeners.getListenerList();
-      for (int i = 0; i < list.length; i += 2) {
-        Class listenerClass = (Class)(list[i]);
-        if (listenerClass == OPCReportListener.class) {
-          OPCReportListener listener = (OPCReportListener)(list[i + 1]);
-          LogMessage message = prepareLogMessage(report);
-          LogEvent event = new LogEvent(this, message.getIdReport(), message);
-          listener.getLogEvent(event);
-        }
+  protected void sendLogMessage(LogMessage message) {
+    Object[] list = reportListeners.getListenerList();
+    for (int i = 0; i < list.length; i += 2) {
+      Class listenerClass = (Class)(list[i]);
+      if (listenerClass == OPCReportListener.class) {
+        OPCReportListener listener = (OPCReportListener)(list[i + 1]);
+        LogEvent event = new LogEvent(this, logPkg++, message);
+        listener.getLogEvent(event);
       }
     }
-
-    /**
-     * Reporting Thread
-     */
-    synchronized public void run() {
-      active = true;
-      while (active) {
-        OPCReport report = getReport();
-        if (report != null) {
-          // send log message to listeners
-          sendLogMessage(report);
-        }
-        try {
-          wait(WAITIME);
-        }
-        catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
-    }
+  }
+  
+  /**
+   * Debug opc-log
+   * 
+   * @param message String
+   */
+  public void debug(String message) {
+    LogMessage log = new LogMessage(new Date(), LogMessage.DEBUG, message);
+    sendLogMessage(log);
   }
 
   public void getLogEvent(LogEvent event) {

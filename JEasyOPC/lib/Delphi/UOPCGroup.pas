@@ -19,13 +19,17 @@ type
     GroupIf         : IOPCItemMgt;
     GroupHandle     : OPCHANDLE;  // serverhandle
     // constructor
-    constructor create(PEnv: PJNIEnv; group: JObject);
+    constructor create(PEnv: PJNIEnv; group: JObject); overload;
+    constructor create(group : TOPCGroup); overload;
+    // desctructor
+    destructor  Destroy; override;
     // update methods
     procedure update(PEnv: PJNIEnv; group: JObject); overload; // update from OPC groups
     // commit methods
     procedure commit(PEnv : PJNIEnv; group : JObject);
     // clone java instance => output: OPCGroup
     function clone(PEnv : PJNIEnv; group : JObject) : JObject;
+    function cloneNative : TOPCGroup;
     // GET
     function getGroupName : string;
     function getItems : TList;
@@ -52,6 +56,22 @@ constructor TOPCGroup.create(PEnv: PJNIEnv; group: JObject);
 begin
   Items := TList.create;
   update(PEnv, group);
+end;
+
+constructor TOPCGroup.create(group: TOPCGroup);
+var i : integer;
+begin
+  groupName       := group.groupName;
+  active          := group.active;
+  updateRate      := group.updateRate;
+  clientHandle    := group.clientHandle;
+  percentDeadBand := group.percentDeadBand;
+  GroupIf         := group.GroupIf;
+  GroupHandle     := group.GroupHandle;
+
+  Items := TList.create;
+  for i:=0 to group.getItemCount-1 do
+    addItem(TOPCItem(group.getItems[i]).cloneNative);
 end;
 
 function TOPCGroup.getClientHandle: OPCHANDLE;
@@ -311,6 +331,8 @@ begin
   JVM.Free;
 end;
 
+//------------------------------------------------------------------------------
+
 function TOPCGroup.clone(PEnv: PJNIEnv; group: JObject): JObject;
 var
   JVM         : TJNIEnv;
@@ -324,6 +346,32 @@ begin
   cloneMethod := JVM.GetMethodID(groupClass, 'clone', '()Ljava/lang/Object;');
   Result := JVM.CallObjectMethodA(group, cloneMethod, nil);
   JVM.Free;
+end;
+
+//------------------------------------------------------------------------------
+
+function TOPCGroup.cloneNative: TOPCGroup;
+begin
+  Result := TOPCGroup.create(self);
+end;
+
+//------------------------------------------------------------------------------
+
+destructor TOPCGroup.Destroy;
+var i : integer;
+    item : TOPCItem;
+begin
+  // destroy items instances
+  i := 0;
+  while getItemCount > 0 do
+  begin
+    item := Items[i];
+    Items.Delete(i);
+    item.Free;
+  end;
+  Items.Free;
+
+  inherited;
 end;
 
 end.

@@ -1,6 +1,5 @@
 package javafish.clients.opc;
 
-import javafish.clients.opc.exception.ConnectivityException;
 
 public class OPCTest2 {
   

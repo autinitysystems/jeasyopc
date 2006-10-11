@@ -1,13 +1,11 @@
 package javafish.clients.opc.component;
 
-import java.util.Date;
 import java.util.GregorianCalendar;
 
 /**
  * OPC Item class
  */
 public class OPCItem implements Cloneable {
-  private static int generateHandle = 0;
   
   // ATTRIBUTES
   
@@ -48,7 +46,7 @@ public class OPCItem implements Cloneable {
    * @param dataType int
    */
   public OPCItem(String itemName, boolean active, String accessPath, int dataType) {
-    clientHandle = generateHandle();
+    clientHandle = -1; // not assigned
     this.itemName = itemName;
     this.active = active;
     this.accessPath = accessPath;
@@ -56,13 +54,12 @@ public class OPCItem implements Cloneable {
   }
   
   /**
-   * Generate client handle identification.
-   * Must be unique.
+   * Generate clientHandle by its owner
    * 
-   * @return int
+   * @param OPCGroup group
    */
-  private static int generateHandle() {
-    return generateHandle++;
+  public void generateClientHandleByOwner(OPCGroup group) {
+    clientHandle = group.getNewItemClientHandle();
   }
   
   /**

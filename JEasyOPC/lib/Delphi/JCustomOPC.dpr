@@ -12,15 +12,11 @@ uses
   Classes,
   ActiveX,
   JNI in 'JNI.pas',
-  UEasyOPC in 'UEasyOPC.pas',
-  UEasyOPCQueue in 'UEasyOPCQueue.pas',
   OPCDA in 'OPCDA.pas',
   JUtils in 'JUtils.pas',
   OPCtypes in 'OPCtypes.pas',
   OPCutils in 'OPCutils.pas',
   OPCCOMN in 'OPCCOMN.pas',
-  UEasyOPCThread in 'UEasyOPCThread.pas',
-  UReport in 'UReport.pas',
   UCustomOPC in 'UCustomOPC.pas',
   UOPCBrowser in 'UOPCBrowser.pas',
   OPCenum in 'OPCenum.pas',
@@ -28,7 +24,8 @@ uses
   UOPCGroup in 'UOPCGroup.pas',
   UOPCItem in 'UOPCItem.pas',
   UOPCExceptions in 'UOPCExceptions.pas',
-  UOPCAsynch in 'UOPCAsynch.pas';
+  UOPCAsynch in 'UOPCAsynch.pas',
+  UOPCQueue in 'UOPCQueue.pas';
 
 const
   ID = 'id'; // signification of id client
@@ -40,18 +37,10 @@ const
 
 type
   TAOPC = array of TCustomOPC;
-  TAQReport = array of TReportQueue;
-
-  TAQOUT = array of TEasyOPCQueue;
-  TABrowser = array of TBrowser;
 
 var
   countOPC : integer = 0;
   aopc     : TAOPC;
-  aqreport : TAQReport;
-
-  abrowser : TABrowser;
-  aqout    : TAQOUT;
 
 //////////////////////////
 // DELPHI - JAVA Bridge //
@@ -68,29 +57,16 @@ begin
   then begin
     // create TCustomOPC
     aopc[countOPC] := TCustomOPC.Create(_host, _serverProgID, _serverClientHandle);
-
-    // create and link logger
-    aqreport[countOPC] := TReportQueue.Create;
-    aopc[countOPC].getReport.OnStatusMessage := aqreport[countOPC].StatusMessage;
-
   end else
   if _className = JOPCBrowser_ClassName // JOPCBrowser
   then begin
     // create TCustomOPC
     aopc[countOPC] := TBrowser.Create(_host, _serverProgID, _serverClientHandle);
-
-    // create and link logger
-    aqreport[countOPC] := TReportQueue.Create;
-    aopc[countOPC].getReport.OnStatusMessage := aqreport[countOPC].StatusMessage;
   end else
   if _className = JOPC_ClassName // JOPC
   then begin
     // create TCustomOPC
     aopc[countOPC] := TOPC.Create(_host, _serverProgID, _serverClientHandle);
-
-    // create and link logger
-    aqreport[countOPC] := TReportQueue.Create;
-    aopc[countOPC].getReport.OnStatusMessage := aqreport[countOPC].StatusMessage;
   end;
 end;
 
@@ -115,7 +91,6 @@ begin
 
   // set arrays
   SetLength(aopc, countOPC + 1);
-  SetLength(aqreport, countOPC + 1);
 
   // create specific native representation by className
   createNativeCodeRepresentation(_className, _host, _serverProgID, _serverClientHandle);
@@ -398,7 +373,7 @@ end;
 //------------------------------------------------------------------------------
 
 procedure Java_javafish_clients_opc_JOPC_registerGroupsNative(PEnv: PJNIEnv;
-  Obj: JObject; group : JObject; item : JObject); stdcall;
+  Obj: JObject); stdcall;
 var OPC : TOPC;
 begin
   OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
@@ -474,332 +449,152 @@ begin
 end;
 
 //------------------------------------------------------------------------------
-//!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-function Java_javafish_clients_opc_JOPC_commitTest(PEnv: PJNIEnv;
-  Obj: JObject; group : JObject) : JObject; stdcall;
-var
-  itm : TOPCGroup;
-  itmClone : JObject;
-  i : integer;
+procedure Java_javafish_clients_opc_JOPC_asynch10ReadNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
 begin
-  // update native groups of opc-client from JAVA code
-  itm := TOPCGroup.create(PEnv, group);
-  itmClone := itm.clone(PEnv, group);
-
-  itm.setActive(false);
-  itm.setUpdateRate(5000);
-  itm.setPercentDeadBand(0.321);
-
-  for i:=0 to itm.getItems.Count-1 do
-  begin
-    TOPCItem(itm.getItems[i]).setItemValue('321.0');
-    TOPCItem(itm.getItems[i]).setTimeStamp(StrToDateTime('7.10.2006 22:36:01'));
+  // register group to the opc-server
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    OPC.asynch10Read(groupNative);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:Asynch10ReadException do
+      throwException(PEnv, SAsynch10ReadException, PAnsiChar(E.Message));
   end;
-
-  itm.commit(PEnv, itmClone);
-
-  Result := itmClone;
 end;
 
 //------------------------------------------------------------------------------
 
-procedure Java_javafish_clients_opc_JCustomOPC_createCustomOPC(PEnv: PJNIEnv;
-  Obj: JObject; host : JString; serverProgID : JString;
-  serverClientHandle : JString); stdcall;
-var
-  JVM  : TJNIEnv;
-  _host : string;
-  _serverProgID : string;
-  _serverClientHandle : string;
+procedure Java_javafish_clients_opc_JOPC_asynch20ReadNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
 begin
-  JVM                 := TJNIEnv.Create(PEnv);
-  _host               := JVM.JStringToString(host);
-  _serverProgID       := JVM.JStringToString(serverProgID);
-  _serverClientHandle := JVM.JStringToString(serverClientHandle);
-  JVM.Free;
-
-  // set arrays
-  SetLength(aopc, countOPC + 1);
-  SetLength(aqout, countOPC + 1);
-  SetLength(aqreport, countOPC + 1);
-  SetLength(abrowser, countOPC + 1);
-
-  // create TEasyOPC
-  //aopc[countOPC] := TCustomOPC.Create(_host, _serverProgID, _serverClientHandle);
-
-  // create queues
-  //aqout[countOPC] := TEasyOPCQueue.Create(aopc[countOPC]);
-
-  // create browser
-  //abrowser[countOPC] := TBrowser.Create(_host, _serverProgID);
-
-  // create and link logger
-  aqreport[countOPC] := TReportQueue.Create;
-  aopc[countOPC].getReport.OnStatusMessage := aqreport[countOPC].StatusMessage;
-  //abrowser[countOPC].getReport.OnStatusMessage := aqreport[countOPC].StatusMessage;
-
-  // Set id-thread to java object
-  SetInt(ID, countOPC, PEnv, Obj);
-  Inc(countOPC);
+  // register group to the opc-server
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    OPC.asynch20Read(groupNative);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:Asynch20ReadException do
+      throwException(PEnv, SAsynch20ReadException, PAnsiChar(E.Message));
+  end;
 end;
 
 //------------------------------------------------------------------------------
 
-procedure Java_javafish_clients_opc_JCustomOPC_startCustomOPC(PEnv: PJNIEnv;
-  Obj: JObject); stdcall;
+procedure Java_javafish_clients_opc_JOPC_asynch10UnadviseNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
 begin
-  // activate client
-  //aopc[GetInt(ID, PEnv, Obj)].resume;
-end;
-
-//-------------------------------------------------------------------------------
-
-procedure Java_javafish_clients_opc_JCustomOPC_terminateCustomOPC(PEnv: PJNIEnv;
-  Obj: JObject); stdcall;
-begin
-  // kill thread
-  //aopc[GetInt(ID, PEnv, Obj)].disactivate;
-end;
-
-//--------------------------------------------------------------------------------
-
-procedure Java_javafish_clients_opc_JCustomOPC_addCustomGroup(PEnv: PJNIEnv;
-  Obj: JObject; name : JString; sleepTime : JInt); stdcall;
-var
-  JVM  : TJNIEnv;
-  _name : string;
-begin
-  JVM   := TJNIEnv.Create(PEnv);
-  _name := JVM.JStringToString(name);
-  JVM.Free;
-
-  // define opc-group
-  //aopc[GetInt(ID, PEnv, Obj)].defineGroup(_name, sleepTime);
+  // register group to the opc-server
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    OPC.asynch10Unadvise(groupNative);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:Asynch10UnadviseException do
+      throwException(PEnv, SAsynch10UnadviseException, PAnsiChar(E.Message));
+  end;
 end;
 
 //------------------------------------------------------------------------------
 
-procedure Java_javafish_clients_opc_JCustomOPC_addCustomItem(PEnv: PJNIEnv;
-  Obj: JObject; groupName : JString;
-  itemName : JString); stdcall;
-var
-  JVM  : TJNIEnv;
-  _groupName : string;
-  _itemName  : string;
+procedure Java_javafish_clients_opc_JOPC_asynch20UnadviseNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
 begin
-  JVM   := TJNIEnv.Create(PEnv);
-  _groupName := JVM.JStringToString(groupName);
-  _itemName  := JVM.JStringToString(itemName);
-  JVM.Free;
-
-  // define opc-item
-  //aopc[GetInt(ID, PEnv, Obj)].SetItem(_groupName, _itemName);
+  // register group to the opc-server
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    OPC.asynch20Unadvise(groupNative);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:Asynch20UnadviseException do
+      throwException(PEnv, SAsynch20UnadviseException, PAnsiChar(E.Message));
+  end;
 end;
 
 //------------------------------------------------------------------------------
 
-function Java_javafish_clients_opc_JCustomOPC_getDownloadGroup(PEnv: PJNIEnv;
+function Java_javafish_clients_opc_JOPC_getDownloadGroupNative(PEnv: PJNIEnv;
   Obj: JObject) : JObject; stdcall;
-  //*******************************
-  // create Java OPC item object
-  function createOPCItem(JVM: TJNIEnv; item : GroupItems) : JObject;
-  var Cls, ClsDate: JClass;
-      Mid, MidDate: JMethodID;
-      Args: array[0..3] of JValue;
-      ArgsDate: array[0..5] of JValue;
-      JDate : JObject;
-      Y, M, D, HH, MM, SS, MS : word;
-  begin
-    // Find the OPCItem class
-    Cls := JVM.FindClass('javafish/clients/opc/OPCItem');
-    if Cls = nil then
-    begin
-      //aopc[GetInt(ID, PEnv, Obj)].setStatusMessage(ID108, '');
-      Result := nil;
-      exit;
-    end;
-    // Get its constructor (the one that takes 4 integers)
-    Mid := JVM.GetMethodID(Cls, '<init>',
-      '(Ljava/lang/String;Ljava/util/GregorianCalendar;Ljava/lang/String;Z)V');
-    if Mid = nil then
-    begin
-      //aopc[GetInt(ID, PEnv, Obj)].setStatusMessage(ID109, '');
-      Result := nil;
-      exit;
-    end;
-
-    // timeStamp
-    DecodeDate(item.TimeStamp, Y, M, D);
-    DecodeTime(item.TimeStamp, HH, MM, SS, MS);
-    ClsDate := JVM.FindClass('java/util/GregorianCalendar');
-    MidDate := JVM.GetMethodID(ClsDate, '<init>', '(IIIIII)V');
-
-    // set Date parameters
-    ArgsDate[0].i := Y;
-    ArgsDate[1].i := M-1;
-    ArgsDate[2].i := D;
-    ArgsDate[3].i := HH;
-    ArgsDate[4].i := MM;
-    ArgsDate[5].i := SS;
-
-    JDate := JVM.NewObjectA(ClsDate, MidDate, @argsDate);
-
-    // set parameters, to create java object OPCItem
-    Args[0].l := JVM.StringToJString(PAnsiChar(item.ItemName));
-    Args[1].l := JDate;
-    Args[2].l := JVM.StringToJString(PAnsiChar(item.ItemValue));
-    Args[3].z := (item.ItemQuality and OPC_QUALITY_MASK) = OPC_QUALITY_GOOD;
-
-    Result := JVM.NewObjectA(Cls, Mid, @args);
-  end;
-  //*********************************************
 var
-  Cls: JClass;
-  ClsItem : JClass;
-  Mid: JMethodID;
-  JOGroup: JObject;
-  Args: array[0..2] of JValue;
-  JVM: TJNIEnv;
-  JOArray : JObjectArray;
-  element : TElement;
-  I : integer;
+  queue        : TOPCQueue;
+  groupNative  : TOPCGroup;
+  JVM          : TJNIEnv;
+  FID          : JFieldID;
+  element      : TElement;
+  opcClass     : JClass;
+  agroups      : JArray;
+  groupsCount  : integer;
+  i            : integer;
+  group        : JObject;
+  groupClass   : JClass;
+  groupCHandle : integer;
+  getGroupsAsArray : JMethodID;
 begin
   Result := nil;
 
-  if aqout[GetInt(ID, PEnv, Obj)].Count > 0
+  queue := TOPC(aopc[GetInt(ID, PEnv, Obj)]).getDefaultQueue;
+
+  if queue.count > 0
   then begin
     // get downloaded group
-    element := aqout[GetInt(ID, PEnv, Obj)].Pop;
-
-    // Create an instance of the Java environment
-    JVM := TJNIEnv.Create(PEnv);
-
-    // Find the OPCGroup class
-    Cls := JVM.FindClass('javafish/clients/opc/OPCGroup');
-    if Cls = nil then
-    begin
-      //aopc[GetInt(ID, PEnv, Obj)].setStatusMessage(ID110, '');
-      Result := nil;
-      exit;
-    end;
-
-    // OPCGroup Constructor
-    Mid := JVM.GetMethodID(Cls, '<init>',
-      '(Ljava/lang/String;I[Ljavafish/clients/opc/OPCItem;)V');
-    if Mid = nil then
-    begin
-      //aopc[GetInt(ID, PEnv, Obj)].setStatusMessage(ID111, '');
-      Result := nil;
-      exit;
-    end;
-
-    // create OPCItems Array //
-    // Allocate the array of Rectangles
-    ClsItem := JVM.FindClass('javafish/clients/opc/OPCItem');
-    JOArray := JVM.NewObjectArray(element.getData.ItemCount, ClsItem, nil);
-
-    // Now initialize each one to a OPC Item
-    for I:=0 to element.getData.ItemCount - 1 do
-    begin
-      // Assign the item to an element of the array
-      JVM.SetObjectArrayElement(JOArray, I,
-        createOPCItem(JVM, element.getData.Items[I]));
-    end;
-
-    // OPCGroup //
-    // set parameters a create java object
-    Args[0].l := JVM.StringToJString(PAnsiChar(element.getData.GroupName));
-    Args[1].i := element.getData.ItemCount;
-    Args[2].l := JOArray;
-
-    // create OPC Group
-    JOGroup := JVM.NewObjectA(Cls, Mid, @args);
-
-    // Return group to java
-    Result := JOGroup;
-
-    JVM.Free;
-    element.Free; // downloaded package from opc
-  end;
-end;
-
-//-------------------------------------------------------------------------------
-
-function Java_javafish_clients_opc_JCustomOPC_getReport(PEnv: PJNIEnv; Obj: JObject) : JString; stdcall;
-var
-  JVM : TJNIEnv;
-  Cls : JClass;
-  Mid: JMethodID;
-  element  : TReportElement;
-  Args: array[0..1] of JValue;
-begin
-  Result := nil;
-
-  if aqreport[GetInt(ID, PEnv, Obj)].Count > 0
-  then begin
-    // get opc report
-    element := aqreport[GetInt(ID, PEnv, Obj)].Pop;
+    element := queue.pop;
+    groupNative := element.getData;
 
     JVM := TJNIEnv.Create(PEnv);
-    Cls := JVM.FindClass('javafish/clients/opc/OPCReport');
-    if Cls = nil then
+    opcClass := JVM.GetObjectClass(Obj);
+
+    // find correct instance of group for clone
+    getGroupsAsArray := JVM.GetMethodID(opcClass, 'getGroupsAsArray',
+      '()[Ljavafish/clients/opc/component/OPCGroup;');
+    agroups := JArray(JVM.CallObjectMethodA(Obj, getGroupsAsArray, nil));
+
+    groupsCount := JVM.GetArrayLength(agroups);
+
+    for i:=0 to groupsCount-1 do
     begin
-      //aopc[GetInt(ID, PEnv, Obj)].setStatusMessage(ID112, '');
-      Result := nil;
-      exit;
+      // get group from Java
+      group := JVM.GetObjectArrayElement(agroups, i);
+
+      // attribute: clientHandle
+      groupClass := JVM.GetObjectClass(group);
+      FID := JVM.GetFieldID(groupClass, 'clientHandle', 'I');
+      groupCHandle := JVM.GetIntField(group, FID);
+
+      if (groupCHandle = groupNative.getClientHandle)
+      then break;
     end;
 
-    Mid := JVM.GetMethodID(Cls, '<init>', '(ILjava/lang/String;)V');
-    if Mid = nil then
-    begin
-      //aopc[GetInt(ID, PEnv, Obj)].setStatusMessage(ID113, '');
-      Result := nil;
-      exit;
-    end;
+    // clone and commit result group
+    Result := groupNative.clone(PEnv, group);
+    groupNative.commit(PEnv, Result);
 
-    // OPCGroup //
-    // set parameters a create java object
-    Args[0].i := element.GetIDReport;
-    Args[1].l := JVM.StringToJString(PAnsiChar(element.GetReport));
-
-    // Return report to java
-    Result := JVM.NewObjectA(Cls, Mid, @args);
-
-    JVM.Free;
+    // free memorym, important!
+    JVM.free;
+    element.free;
   end;
 end;
-
-//------------------------------------------------------------------------------
-
-procedure Java_javafish_clients_opc_JCustomOPC_pauseClient(PEnv: PJNIEnv; Obj: JObject); stdcall;
-begin
-  //aopc[GetInt(ID, PEnv, Obj)].PauseClient;
-end;
-
-//------------------------------------------------------------------------------
-
-procedure Java_javafish_clients_opc_JCustomOPC_playClient(PEnv: PJNIEnv; Obj: JObject); stdcall;
-begin
-  //aopc[GetInt(ID, PEnv, Obj)].PlayClient;
-end;
-
 
 (*******************************************************************************
   Make these routines available to Java.
 *******************************************************************************)
 exports
-  // old methods
-  Java_javafish_clients_opc_JCustomOPC_createCustomOPC,
-  Java_javafish_clients_opc_JCustomOPC_startCustomOPC,
-  Java_javafish_clients_opc_JCustomOPC_terminateCustomOPC,
-  Java_javafish_clients_opc_JCustomOPC_addCustomGroup,
-  Java_javafish_clients_opc_JCustomOPC_addCustomItem,
-  Java_javafish_clients_opc_JCustomOPC_getDownloadGroup,
-  Java_javafish_clients_opc_JCustomOPC_getReport,
-  Java_javafish_clients_opc_JCustomOPC_pauseClient,
-  Java_javafish_clients_opc_JCustomOPC_playClient,
-
   // JCustomOPC methods
   Java_javafish_clients_opc_JCustomOPC_newInstance,
   Java_javafish_clients_opc_JCustomOPC_connectServer,
@@ -821,6 +616,11 @@ exports
   Java_javafish_clients_opc_JOPC_unregisterItemNative,
   Java_javafish_clients_opc_JOPC_unregisterGroupsNative,
   Java_javafish_clients_opc_JOPC_synchReadItemNative,
-  Java_javafish_clients_opc_JOPC_synchWriteItemNative;
+  Java_javafish_clients_opc_JOPC_synchWriteItemNative,
+  Java_javafish_clients_opc_JOPC_asynch10ReadNative,
+  Java_javafish_clients_opc_JOPC_asynch20ReadNative,
+  Java_javafish_clients_opc_JOPC_asynch10UnadviseNative,
+  Java_javafish_clients_opc_JOPC_asynch20UnadviseNative,
+  Java_javafish_clients_opc_JOPC_getDownloadGroupNative;
 begin
 end.

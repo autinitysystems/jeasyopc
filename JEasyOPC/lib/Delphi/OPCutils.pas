@@ -42,15 +42,23 @@ function GroupRemoveItem(GroupIf: IOPCItemMgt; ServerHandle: OPCHANDLE): HResult
 function ReadOPCGroupItemValue(GroupIf: IUnknown; ItemServerHandle: OPCHANDLE;
            var ItemValue: string; var ItemQuality: Word): HResult;
 
-function GroupAdviseTime(GroupIf: IUnknown; Sink: IAdviseSink;
-          var AsyncConnection: Longint): HResult;
-function GroupUnAdvise(GroupIf: IUnknown; AsyncConnection: Longint): HResult;
-function GroupAdvise2(GroupIf: IUnknown; OPCDataCallback: IOPCDataCallback;
-          var AsyncConnection: Longint): HResult;
-function GroupUnadvise2(GroupIf: IUnknown;
-          var AsyncConnection: Longint): HResult;
+// synch write item value
 function WriteOPCGroupItemValue(GroupIf: IUnknown; ItemServerHandle: OPCHANDLE;
           ItemValue: OleVariant): HResult;
+
+// asynch 1.0 (AdviseSink) reading
+function GroupAdviseTime(GroupIf: IUnknown; Sink: IAdviseSink;
+          var AsyncConnection: Longint): HResult;
+
+// asynch 2.0 (Callbask) reading
+function GroupAdvise2(GroupIf: IUnknown; OPCDataCallback: IOPCDataCallback;
+          var AsyncConnection: Longint): HResult;
+
+// asynch 1.0 unadvise reading
+function GroupUnAdvise(GroupIf: IUnknown; AsyncConnection: Longint): HResult;
+
+// asynch 2.0 unadvise reading
+function GroupUnadvise2(GroupIf: IUnknown; var AsyncConnection: Longint): HResult;
 
 //=============================================================================
 

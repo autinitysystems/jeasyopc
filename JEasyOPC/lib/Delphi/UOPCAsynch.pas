@@ -3,7 +3,8 @@ unit UOPCAsynch;
 interface
 
 uses
-  Windows, SysUtils, ActiveX, Variants, OPCDA, OPCTypes, UOPCGroup;
+  Classes, Windows, SysUtils, ActiveX, Variants, OPCDA, OPCTypes, UOPCGroup, UOPCItem,
+  JNI;
 
 type
 
@@ -54,6 +55,18 @@ type
     procedure OnRename(const mk: IMoniker); stdcall;
     procedure OnSave; stdcall;
     procedure OnClose; stdcall;
+  end;
+
+//------------------------------------------------------------------------------
+
+  TAsynchConsumer = class
+  private
+    counter : integer;
+  public
+    PEnv: PJNIEnv;
+    Obj: JObject;
+    procedure downloadGroup(cHandle_Group : OPCHANDLE; DownOPCGroup : TOPCGroup);
+    procedure storeGroupToFile(group : TOPCGroup; fn: string);
   end;
 
 //------------------------------------------------------------------------------
@@ -249,6 +262,115 @@ begin
     end;
     GlobalUnlock(stgmed.hGlobal);
   end;
+end;
+
+//------------------------------------------------------------------------------
+
+{ TAsynchConsumer }
+
+procedure TAsynchConsumer.downloadGroup(cHandle_Group: OPCHANDLE;
+  downOPCGroup: TOPCGroup);
+var
+  JVM         : TJNIEnv;
+  FID         : JFieldID;
+  opcClass    : JClass;
+  arrayListClass : JClass;
+  gch         : integer;
+  groupNative : TOPCGroup;
+  arrayList   : JObject;
+  groupName   : string;
+  add         : JMethodID;
+  args        : array[0..0] of JValue;
+
+  getGroupsAsArray : JMethodID;
+  agroups      : JArray;
+  group        : JObject;
+  groupClass   : JClass;
+  groupsCount  : integer;
+  i : integer;
+  groupCHandle : integer;
+  clone : JObject;
+begin
+  JVM := TJNIEnv.Create(PEnv);
+
+  // get classes
+  opcClass := JVM.GetObjectClass(Obj);
+
+  // get group from groups map by its clientHandle
+  getGroupsAsArray := JVM.GetMethodID(opcClass, 'getGroupsAsArray',
+    '()[Ljavafish/clients/opc/component/OPCGroup;');
+  agroups := JArray(JVM.CallObjectMethodA(Obj, getGroupsAsArray, nil));
+
+  groupsCount := JVM.GetArrayLength(agroups);
+
+  for i:=0 to groupsCount-1 do
+  begin
+    // get group from Java
+    group := JVM.GetObjectArrayElement(agroups, i);
+
+    // attribute: clientHandle
+    groupClass := JVM.GetObjectClass(group);
+    FID := JVM.GetFieldID(groupClass, 'clientHandle', 'I');
+    groupCHandle := JVM.GetIntField(group, FID);
+
+    if (groupCHandle = downOPCGroup.getClientHandle)
+    then break;
+  end;
+
+  // attribute: groupName
+  FID := JVM.GetFieldID(opcClass, 'stack', 'Ljava/util/ArrayList;');
+  arrayList := JVM.GetObjectField(Obj, FID);
+  arrayListClass := JVM.GetObjectClass(arrayList);
+
+  add := JVM.GetMethodID(arrayListClass, 'add', '(Ljava/lang/Object;)Z');
+
+  // create new clone
+  clone := DownOPCGroup.clone(PEnv, group);
+  DownOPCGroup.commit(PEnv, clone);
+
+  args[0].l := clone;
+
+  // call method
+  JVM.CallObjectMethodA(arrayList, add, @args);
+
+  JVM.Free;
+end;
+
+procedure TAsynchConsumer.storeGroupToFile(group : TOPCGroup; fn: string);
+var foo : TStringList;
+    i,j   : integer;
+    item  : TOPCItem;
+    items : TList;
+begin
+  foo := TStringList.Create;
+  foo.Add('GROUP: ' + group.getGroupName);
+  foo.Add('GROUP clientHandle: ' + IntToStr(group.getClientHandle));
+  foo.Add('GROUP updateRate: ' + IntToStr(group.getUpdateRate));
+  foo.Add('GROUP active: ' + BoolToStr(group.isActive, true));
+  foo.Add('GROUP percentDeadBand: ' + FloatToStr(group.getPercentDeadBand));
+
+  items := group.getItems;
+  if items <> nil
+  then begin
+    if items.Count > 0
+    then begin
+      for j:=0 to items.Count-1 do
+      begin
+        item := TOPCItem(items[j]);
+        foo.Add('GROUP.Item: ' + item.getItemName);
+        foo.Add('GROUP.Item clientHandle: ' + IntToStr(item.getClientHandle));
+        foo.Add('GROUP.Item accessPath: ' + item.getAccessPath);
+        foo.Add('GROUP.Item itemValue: ' + item.getItemValue);
+        foo.Add('GROUP.Item active: ' + BoolToStr(item.isActive, true));
+        foo.Add('GROUP.Item dataType: ' + IntToStr(item.getDataType));
+        //foo.Add('GROUP.Item quality: ' + BoolToStr(item.getItemQuality, true));
+      end;
+    end else foo.Add('ITEMS: empty group');
+  end
+  else foo.Add('ITEMS: empty group');
+  // store to file
+  foo.SaveToFile(fn);
+  foo.Free;
 end;
 
 

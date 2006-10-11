@@ -19,6 +19,10 @@ type // NATIVE CODE EXCEPTIONS
   ComponentNotFoundException = class(Exception);  // group/item not found
   SynchReadException = class(Exception);          // synch read error
   SynchWriteException = class(Exception);         // synch write error
+  Asynch10ReadException = class(Exception);       // asynch 1.0 read error
+  Asynch20ReadException = class(Exception);       // asynch 2.0 read error
+  Asynch10UnadviseException = class(Exception);   // asynch 1.0 unadvise error
+  Asynch20UnadviseException = class(Exception);   // asynch 2.0 unadvise error
 
 const // NATIVE CODE EXCEPTIONS TEXT
   // exceptions text
@@ -32,6 +36,10 @@ const // NATIVE CODE EXCEPTIONS TEXT
   ComponentNotFoundExceptionText = 'Component doesn''t found exception.';
   SynchReadExceptionText = 'Synchronous reading error.';
   SynchWriteExceptionText = 'Synchronous writing error.';
+  Asynch10ReadExceptionText = 'Asynchronous read error (register AdviseSink).';
+  Asynch20ReadExceptionText = 'Asynchronous read error (register CallBack).';
+  Asynch10UnadviseExceptionText = 'Asynchronous unadvise 1.0 error.';
+  Asynch20UnadviseExceptionText = 'Asynchronous unadvise 2.0 error.';
 
 const // JAVA CODE EXCEPTIONS
   EXCPKG = 'javafish/clients/opc/exception/'; // standard exception package
@@ -50,6 +58,10 @@ const // JAVA CODE EXCEPTIONS
   SComponentNotFoundException = EXCPKG + 'ComponentNotFoundException';
   SSynchReadException = EXCPKG + 'SynchReadException';
   SSynchWriteException = EXCPKG + 'SynchWriteException';
+  SAsynch10ReadException = EXCPKG + 'Asynch10ReadException';
+  SAsynch20ReadException = EXCPKG + 'Asynch20ReadException';
+  SAsynch10UnadviseException = EXCPKG + 'Asynch10UnadviseException';
+  SAsynch20UnadviseException = EXCPKG + 'Asynch20UnadviseException';
 
 implementation
 

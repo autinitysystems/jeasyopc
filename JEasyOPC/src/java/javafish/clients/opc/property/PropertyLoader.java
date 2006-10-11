@@ -1,6 +1,5 @@
 package javafish.clients.opc.property;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 

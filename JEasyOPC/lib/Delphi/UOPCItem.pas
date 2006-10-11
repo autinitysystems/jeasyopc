@@ -21,13 +21,16 @@ type
     ItemHandle   : OPCHANDLE; // serverhandle
     ItemType     : TVarType;  // Canonical type
     // constructor
-    constructor create(PEnv : PJNIEnv; item : JObject);
+    constructor create(PEnv : PJNIEnv; item : JObject); overload;
+    constructor create(item : TOPCItem); overload;
     // update methods
     procedure update(PEnv : PJNIEnv; item : JObject);
     // commit methods
     procedure commit(PEnv : PJNIEnv; item : JObject);
     // clone java instance => output: OPCItem
     function clone(PEnv : PJNIEnv; item : JObject) : JObject;
+    // clone in native code
+    function cloneNative() : TOPCItem;
     // GET
     function getItemName : string;
     function isActive : boolean;
@@ -56,6 +59,20 @@ begin
   itemQuality := 0;
   // update attributes from Java
   update(PEnv, item);
+end;
+
+constructor TOPCItem.create(item: TOPCItem);
+begin
+  itemName     := item.itemName;
+  active       := item.active;
+  accessPath   := item.accessPath;
+  clientHandle := item.clientHandle;
+  itemValue    := item.itemValue;
+  itemQuality  := item.itemQuality;
+  timeStamp    := item.timeStamp;
+  dataType     := item.dataType;
+  ItemHandle   := item.ItemHandle;
+  ItemType     := item.ItemType;
 end;
 
 function TOPCItem.getItemValue: string;
@@ -238,6 +255,11 @@ begin
   cloneMethod := JVM.GetMethodID(itemClass, 'clone', '()Ljava/lang/Object;');
   Result := JVM.CallObjectMethodA(item, cloneMethod, nil);
   JVM.Free;
+end;
+
+function TOPCItem.cloneNative: TOPCItem;
+begin
+  Result := TOPCItem.create(self);
 end;
 
 end.
