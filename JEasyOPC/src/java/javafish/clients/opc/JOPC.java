@@ -41,7 +41,7 @@ public class JOPC extends JCustomOPC implements Runnable {
   protected EventListenerList asynchGroupListeners;
   
   /* package counter */
-  private int idpkg = 0;
+  protected int idpkg = 0;
   
   /**
    * Create new instance of OPC Client.
@@ -61,47 +61,47 @@ public class JOPC extends JCustomOPC implements Runnable {
   // NATIVE CODE
   ////////////////
   
-  private native void addNativeGroup(OPCGroup group);
+  protected native void addNativeGroup(OPCGroup group);
   
-  private native void updateNativeGroups();
+  protected native void updateNativeGroups();
   
-  private native void registerGroupNative(OPCGroup group)
+  protected native void registerGroupNative(OPCGroup group)
     throws ComponentNotFoundException, UnableAddGroupException; 
   
-  private native void registerItemNative(OPCGroup group, OPCItem item)
+  protected native void registerItemNative(OPCGroup group, OPCItem item)
     throws ComponentNotFoundException, UnableAddItemException;
   
-  private native void registerGroupsNative()
+  protected native void registerGroupsNative()
     throws UnableAddGroupException, UnableAddItemException;
   
-  private native void unregisterGroupNative(OPCGroup group)
+  protected native void unregisterGroupNative(OPCGroup group)
     throws ComponentNotFoundException, UnableRemoveGroupException;
   
-  private native void unregisterItemNative(OPCGroup group, OPCItem item)
+  protected native void unregisterItemNative(OPCGroup group, OPCItem item)
     throws ComponentNotFoundException, UnableRemoveItemException;
   
-  private native void unregisterGroupsNative()
+  protected native void unregisterGroupsNative()
     throws UnableRemoveGroupException;
   
-  private native OPCItem synchReadItemNative(OPCGroup group, OPCItem item)
+  protected native OPCItem synchReadItemNative(OPCGroup group, OPCItem item)
     throws ComponentNotFoundException, SynchReadException;
 
-  private native void synchWriteItemNative(OPCGroup group, OPCItem item)
+  protected native void synchWriteItemNative(OPCGroup group, OPCItem item)
     throws ComponentNotFoundException, SynchWriteException;
   
-  private native void asynch10ReadNative(OPCGroup group)
+  protected native void asynch10ReadNative(OPCGroup group)
     throws ComponentNotFoundException, Asynch10ReadException;
   
-  private native void asynch20ReadNative(OPCGroup group)
+  protected native void asynch20ReadNative(OPCGroup group)
     throws ComponentNotFoundException, Asynch20ReadException;
   
-  private native void asynch10UnadviseNative(OPCGroup group)
+  protected native void asynch10UnadviseNative(OPCGroup group)
     throws ComponentNotFoundException, Asynch10UnadviseException;
   
-  private native void asynch20UnadviseNative(OPCGroup group)
+  protected native void asynch20UnadviseNative(OPCGroup group)
     throws ComponentNotFoundException, Asynch20UnadviseException;
   
-  private native OPCGroup getDownloadGroupNative();
+  protected native OPCGroup getDownloadGroupNative();
   
   ////////////////////////////////////////////////////////////////////////
   
@@ -499,9 +499,17 @@ public class JOPC extends JCustomOPC implements Runnable {
   public OPCGroup getDownloadGroup() {
     return getDownloadGroupNative();
   }
+  
+  /**
+   * Run OPC-Client thread
+   */
+  public void start() {
+    thread.start();
+  }
 
   public void run() {
-  // TODO Auto-generated method stub
+    // not implemented (possible in future)
+    // you can override this method
   }
 
 }

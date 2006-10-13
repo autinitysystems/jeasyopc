@@ -21,7 +21,7 @@ public class OPCTest7 {
     OPCTest7 test = new OPCTest7();
     
     JOPC jopc = new JOPC("localhost", "Matrikon.OPC.Simulation", "JOPC1");
-    JOPC jopc2 = new JOPC("localhost", "Matrikon.OPC.Simulation", "JOPC2");
+    JEasyOPC jopc2 = new JEasyOPC("localhost", "Matrikon.OPC.Simulation", "JOPC2");
     
     OPCItem item1 = new OPCItem("Random.Real8", true, "", 0);
     OPCItem item2 = new OPCItem("Random.Real8", true, "", 0);

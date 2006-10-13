@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
+import javafish.clients.opc.browser.JOPCBrowser;
 import javafish.clients.opc.exception.ConnectivityException;
 import javafish.clients.opc.lang.Translate;
 import javafish.clients.opc.property.PropertyLoader;
@@ -74,13 +75,31 @@ abstract public class JCustomOPC implements OPCReportListener {
     PropertyConfigurator.configure(PropertyLoader.getDefaultLoggerProperties());
     
     // create native child of CustomOPC client
-    newInstance(getClass().getName(), host, serverProgID, serverClientHandle);
+    newInstance(getParentClass().getName(), host, serverProgID, serverClientHandle);
     
     // create standard reporting listener
     useStandardReporting = Boolean.valueOf(props.getProperty("standardReport", "true"));
     if (useStandardReporting) {
       addOPCReportListener(this);
     }
+  }
+  
+  /**
+   * Get parent class for native representation structures
+   * 
+   * @return parent Class
+   */
+  protected Class getParentClass() {
+    if (this instanceof JOPC) {
+      return JOPC.class;
+    }
+    if (this instanceof JOPCBrowser) {
+      return JOPCBrowser.class;
+    }
+    if (this instanceof JCustomOPC) {
+      return JCustomOPC.class;
+    }
+    return JCustomOPC.class; // parent of all
   }
 
   /**
@@ -247,6 +266,63 @@ abstract public class JCustomOPC implements OPCReportListener {
    */
   public void debug(String message) {
     LogMessage log = new LogMessage(new Date(), LogMessage.DEBUG, message);
+    sendLogMessage(log);
+  }
+  
+  /**
+   * Info opc-log
+   * 
+   * @param message String
+   */
+  public void info(String message) {
+    LogMessage log = new LogMessage(new Date(), LogMessage.INFO, message);
+    sendLogMessage(log);
+  }
+  
+  /**
+   * Warning opc-log
+   * 
+   * @param message String
+   */
+  public void warn(String message) {
+    LogMessage log = new LogMessage(new Date(), LogMessage.WARNING, message);
+    sendLogMessage(log);
+  }
+  
+  /**
+   * Error opc-log
+   * 
+   * @param message String
+   */
+  public void error(String message) {
+    LogMessage log = new LogMessage(new Date(), LogMessage.ERROR, message);
+    sendLogMessage(log);
+  }
+  
+  /**
+   * Error opc-log
+   * 
+   * @param e Exception
+   */
+  public void error(Exception e) {
+    StringBuffer sb = new StringBuffer(e.getMessage() +
+        System.getProperty("line.separator"));
+    StackTraceElement[] elements = e.getStackTrace();
+    for (int i = 0; i < elements.length; i++) {
+      sb.append(elements[i]);
+      sb.append(System.getProperty("line.separator"));
+    }
+    LogMessage log = new LogMessage(new Date(), LogMessage.ERROR, sb.toString());
+    sendLogMessage(log);
+  }
+  
+  /**
+   * Fatal opc-log
+   * 
+   * @param message String
+   */
+  public void fatal(String message) {
+    LogMessage log = new LogMessage(new Date(), LogMessage.FATAL, message);
     sendLogMessage(log);
   }
 
