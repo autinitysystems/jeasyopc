@@ -4,8 +4,12 @@ import javafish.clients.opc.component.OPCGroup;
 import javafish.clients.opc.component.OPCItem;
 import javafish.clients.opc.exception.Asynch10ReadException;
 import javafish.clients.opc.exception.Asynch10UnadviseException;
+import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.ConnectivityException;
+import javafish.clients.opc.exception.CoUninitializeException;
+import javafish.clients.opc.exception.GroupActivityException;
+import javafish.clients.opc.exception.GroupUpdateTimeException;
 import javafish.clients.opc.exception.UnableAddGroupException;
 import javafish.clients.opc.exception.UnableAddItemException;
 
@@ -17,6 +21,13 @@ public class OPCTest6 {
    */
   public static void main(String[] args) throws InterruptedException {
     OPCTest6 test = new OPCTest6();
+    
+    try {
+      JOPC.coInitialize();
+    }
+    catch (CoInitializeException e1) {
+      e1.printStackTrace();
+    }
     
     JOPC jopc = new JOPC("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     
@@ -47,8 +58,29 @@ public class OPCTest6 {
         downGroup = jopc.getDownloadGroup();
         if (downGroup != null) {
           System.out.println(downGroup);
-        } else {
-          //System.out.println("Nothing...");
+        }
+        
+        if ((System.currentTimeMillis() - start) >= 6000) {
+          jopc.setGroupActivity(group, false);
+        }
+        
+        synchronized(test) {
+          test.wait(50);       
+        }
+      }
+      
+      // change activity
+      jopc.setGroupActivity(group, true);
+      
+      // change updateTime
+      jopc.setGroupUpdateTime(group, 100);
+      
+      start = System.currentTimeMillis();
+      while ((System.currentTimeMillis() - start) < 10000) {
+        jopc.ping();
+        downGroup = jopc.getDownloadGroup();
+        if (downGroup != null) {
+          System.out.println(downGroup);
         }
         
         synchronized(test) {
@@ -59,7 +91,7 @@ public class OPCTest6 {
       jopc.asynch10Unadvise(group);
       System.out.println("OPC asynchronous reading is unadvise...");
       
-      jopc.disconnect();
+      JOPC.coUninitialize();
       System.out.println("Program terminated...");
       
       System.out.println("");
@@ -80,6 +112,15 @@ public class OPCTest6 {
       e.printStackTrace();
     }
     catch (Asynch10UnadviseException e) {
+      e.printStackTrace();
+    }
+    catch (GroupUpdateTimeException e) {
+      e.printStackTrace();
+    }
+    catch (GroupActivityException e) {
+      e.printStackTrace();
+    }
+    catch (CoUninitializeException e) {
       e.printStackTrace();
     }
   }

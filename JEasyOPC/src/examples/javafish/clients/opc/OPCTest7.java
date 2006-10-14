@@ -6,8 +6,10 @@ import javafish.clients.opc.exception.Asynch10ReadException;
 import javafish.clients.opc.exception.Asynch10UnadviseException;
 import javafish.clients.opc.exception.Asynch20ReadException;
 import javafish.clients.opc.exception.Asynch20UnadviseException;
+import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.ConnectivityException;
+import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.UnableAddGroupException;
 import javafish.clients.opc.exception.UnableAddItemException;
 
@@ -19,6 +21,13 @@ public class OPCTest7 {
    */
   public static void main(String[] args) throws InterruptedException {
     OPCTest7 test = new OPCTest7();
+    
+    try {
+      JOPC.coInitialize();
+    }
+    catch (CoInitializeException e1) {
+      e1.printStackTrace();
+    }
     
     JOPC jopc = new JOPC("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     JEasyOPC jopc2 = new JEasyOPC("localhost", "Matrikon.OPC.Simulation", "JOPC2");
@@ -80,8 +89,7 @@ public class OPCTest7 {
       jopc2.asynch20Unadvise(group2);
       jopc.debug("OPC asynchronous reading is unadvise...");
       
-      jopc.disconnect();
-      jopc2.disconnect();
+      JOPC.coUninitialize();
       jopc.debug("Program terminated...");
       
     }
@@ -107,6 +115,9 @@ public class OPCTest7 {
       e.printStackTrace();
     }
     catch (Asynch20UnadviseException e) {
+      e.printStackTrace();
+    }
+    catch (CoUninitializeException e) {
       e.printStackTrace();
     }
   }

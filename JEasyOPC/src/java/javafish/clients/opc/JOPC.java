@@ -16,7 +16,9 @@ import javafish.clients.opc.exception.Asynch10UnadviseException;
 import javafish.clients.opc.exception.Asynch20ReadException;
 import javafish.clients.opc.exception.Asynch20UnadviseException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
+import javafish.clients.opc.exception.GroupActivityException;
 import javafish.clients.opc.exception.GroupExistsException;
+import javafish.clients.opc.exception.GroupUpdateTimeException;
 import javafish.clients.opc.exception.SynchReadException;
 import javafish.clients.opc.exception.SynchWriteException;
 import javafish.clients.opc.exception.UnableAddGroupException;
@@ -102,6 +104,12 @@ public class JOPC extends JCustomOPC implements Runnable {
     throws ComponentNotFoundException, Asynch20UnadviseException;
   
   protected native OPCGroup getDownloadGroupNative();
+  
+  protected native void setGroupUpdateTimeNative(OPCGroup group, int updateTime)
+    throws GroupUpdateTimeException;
+  
+  protected native void setGroupActivityNative(OPCGroup group, boolean active)
+    throws GroupActivityException;
   
   ////////////////////////////////////////////////////////////////////////
   
@@ -498,6 +506,42 @@ public class JOPC extends JCustomOPC implements Runnable {
    */
   public OPCGroup getDownloadGroup() {
     return getDownloadGroupNative();
+  }
+  
+  /**
+   * Set new updateTime of group (refresh rate)
+   * 
+   * @param group OPCGroup
+   * @param updateTime int
+   * 
+   * @throws GroupUpdateTimeException
+   */
+  public void setGroupUpdateTime(OPCGroup group, int updateTime) throws GroupUpdateTimeException {
+    try {
+      setGroupUpdateTimeNative(group, updateTime);
+    }
+    catch (GroupUpdateTimeException e) {
+      throw new GroupUpdateTimeException(Translate.getString("GROUP_UPDATETIME_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+  }
+  
+  /**
+   * Set new activity of group (change actie state)
+   * 
+   * @param group OPCGroup
+   * @param active boolean
+   * 
+   * @throws GroupActivityException
+   */
+  public void setGroupActivity(OPCGroup group, boolean active) throws GroupActivityException {
+    try {
+      setGroupActivityNative(group, active);
+    }
+    catch (GroupActivityException e) {
+      throw new GroupActivityException(Translate.getString("GROUP_ACTIVITY_EXCEPTION") + " " +
+          group.getGroupName());
+    }
   }
   
   /**

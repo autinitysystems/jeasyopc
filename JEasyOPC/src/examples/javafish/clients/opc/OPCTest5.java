@@ -2,8 +2,10 @@ package javafish.clients.opc;
 
 import javafish.clients.opc.component.OPCGroup;
 import javafish.clients.opc.component.OPCItem;
+import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.ConnectivityException;
+import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.SynchReadException;
 import javafish.clients.opc.exception.SynchWriteException;
 import javafish.clients.opc.exception.UnableAddGroupException;
@@ -19,6 +21,13 @@ public class OPCTest5 {
    */
   public static void main(String[] args) throws InterruptedException {
     JOPC jopc = new JOPC("localhost", "Matrikon.OPC.Simulation", "JOPC1");
+    
+    try {
+      JOPC.coInitialize();
+    }
+    catch (CoInitializeException e1) {
+      e1.printStackTrace();
+    }
     
     OPCItem item1 = new OPCItem("Random.Real8", true, "", 0);
     OPCItem item2 = new OPCItem("Bucket Brigade.Real4", true, "", 0);
@@ -64,7 +73,7 @@ public class OPCTest5 {
       
       System.out.println("Group was unregistred...");
       
-      jopc.disconnect();
+      JOPC.coUninitialize();
       System.out.println("OPC is disconnected...");
     }
     catch (ConnectivityException e) {
@@ -89,6 +98,9 @@ public class OPCTest5 {
       e.printStackTrace();
     }
     catch (SynchWriteException e) {
+      e.printStackTrace();
+    }
+    catch (CoUninitializeException e) {
       e.printStackTrace();
     }
   }

@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Properties;
 
 import javafish.clients.opc.browser.JOPCBrowser;
+import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.ConnectivityException;
+import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.lang.Translate;
 import javafish.clients.opc.property.PropertyLoader;
 import javafish.clients.opc.report.LogEvent;
@@ -121,9 +123,18 @@ abstract public class JCustomOPC implements OPCReportListener {
   private native void connectServer() throws ConnectivityException;
   
   /**
-   * Disconnect server
+   * COM objects initialize (must be call first in program!)
+   * 
+   * @throws CoInitializeException
    */
-  private native void disconnectServer();
+  private static native void coInitializeNative() throws CoInitializeException;
+  
+  /**
+   * COM objects uninitialize (can be call on program exit)
+   * 
+   * @throws CoUninitializeException
+   */
+  private static native void coUninitializeNative() throws CoUninitializeException;
 
   /**
    * Get OPC server status,
@@ -132,6 +143,34 @@ abstract public class JCustomOPC implements OPCReportListener {
    * @return server is OK, boolean
    */
   private native boolean getStatus();
+  
+  /**
+   * COM objects uninitialize (can be call on program exit)
+   * 
+   * @throws CoUninitializeException 
+   */
+  synchronized static public void coUninitialize() throws CoUninitializeException {
+    try {
+      coUninitializeNative();
+    }
+    catch (CoUninitializeException e) {
+      throw new CoUninitializeException(Translate.getString("COUNINITIALIZE_EXCECPTION"));
+    }
+  }
+  
+  /**
+   * COM objects initialize (must be call first in program!)
+   * 
+   * @throws CoInitializeException
+   */
+  synchronized static public void coInitialize() throws CoInitializeException {
+    try {
+      coInitializeNative();
+    }
+    catch (CoInitializeException e) {
+      throw new CoInitializeException(Translate.getString("COINITIALIZE_EXCECPTION"));
+    }
+  }
   
   /**
    * Return Description of OPC Server
@@ -152,13 +191,6 @@ abstract public class JCustomOPC implements OPCReportListener {
   }
 
   /**
-   * Disconnect OPC Server
-   */
-  synchronized public void disconnect() {
-    disconnectServer();
-  }
-  
-  /**
    * Check connection between server and client
    * 
    * @return server is connected, boolean
@@ -172,7 +204,7 @@ abstract public class JCustomOPC implements OPCReportListener {
    * 
    * @throws ConnectivityException
    */
-  public void connect() throws ConnectivityException {
+  synchronized public void connect() throws ConnectivityException {
     try {
       connectServer();
     }

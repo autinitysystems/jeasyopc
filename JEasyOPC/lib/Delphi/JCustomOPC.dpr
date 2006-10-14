@@ -11,6 +11,7 @@ uses
   SysUtils,
   Classes,
   ActiveX,
+  Forms,
   JNI in 'JNI.pas',
   OPCDA in 'OPCDA.pas',
   JUtils in 'JUtils.pas',
@@ -102,6 +103,34 @@ end;
 
 //------------------------------------------------------------------------------
 
+procedure Java_javafish_clients_opc_JCustomOPC_coInitializeNative(PEnv: PJNIEnv;
+  Obj: JObject); stdcall;
+begin
+  try
+    // among other things, this call makes sure that COM is initialized
+    Application.Initialize;
+    CoInitializeEx(nil, COINIT_MULTITHREADED);
+  except
+    on E:Exception do
+      throwException(PEnv, SCoInitializeException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JCustomOPC_coUninitializeNative(PEnv: PJNIEnv;
+  Obj: JObject); stdcall;
+begin
+  try
+    CoUninitialize;
+  except
+    on E:Exception do
+      throwException(PEnv, SCoUninitializeException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure Java_javafish_clients_opc_JCustomOPC_connectServer(PEnv: PJNIEnv;
   Obj: JObject); stdcall;
 begin
@@ -111,14 +140,6 @@ begin
     on E:ConnectivityException do
       throwException(PEnv, SConnectivityException, PAnsiChar(E.Message));
   end;
-end;
-
-//------------------------------------------------------------------------------
-
-procedure Java_javafish_clients_opc_JCustomOPC_disconnectServer(PEnv: PJNIEnv;
-  Obj: JObject); stdcall;
-begin
-  aopc[GetInt(ID, PEnv, Obj)].disconnect;
 end;
 
 //------------------------------------------------------------------------------
@@ -591,14 +612,55 @@ begin
   end;
 end;
 
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_setGroupUpdateTimeNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject; updateTime : JInt); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
+begin
+  // change update time of group
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    OPC.setOPCGroupUpdateTime(groupNative, updateTime);
+    // change updateTime in Java code
+    groupNative.commit(PEnv, group);
+  except
+    on E:GroupUpdateTimeException do
+      throwException(PEnv, SGroupUpdateTimeException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_setGroupActivityNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject; active : JBoolean); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
+begin
+  // change activity of group
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    OPC.setOPCGroupActivity(groupNative, active);
+    // change active in Java code
+    groupNative.commit(PEnv, group);
+  except
+    on E:GroupActivityException do
+      throwException(PEnv, SGroupActivityException, PAnsiChar(E.Message));
+  end;
+end;
+
 (*******************************************************************************
   Make these routines available to Java.
 *******************************************************************************)
 exports
   // JCustomOPC methods
   Java_javafish_clients_opc_JCustomOPC_newInstance,
+  Java_javafish_clients_opc_JCustomOPC_coInitializeNative,
+  Java_javafish_clients_opc_JCustomOPC_coUninitializeNative,
   Java_javafish_clients_opc_JCustomOPC_connectServer,
-  Java_javafish_clients_opc_JCustomOPC_disconnectServer,
   Java_javafish_clients_opc_JCustomOPC_getStatus,
 
   // JOPCBrowser methods
@@ -621,6 +683,8 @@ exports
   Java_javafish_clients_opc_JOPC_asynch20ReadNative,
   Java_javafish_clients_opc_JOPC_asynch10UnadviseNative,
   Java_javafish_clients_opc_JOPC_asynch20UnadviseNative,
-  Java_javafish_clients_opc_JOPC_getDownloadGroupNative;
+  Java_javafish_clients_opc_JOPC_getDownloadGroupNative,
+  Java_javafish_clients_opc_JOPC_setGroupUpdateTimeNative,
+  Java_javafish_clients_opc_JOPC_setGroupActivityNative;
 begin
 end.

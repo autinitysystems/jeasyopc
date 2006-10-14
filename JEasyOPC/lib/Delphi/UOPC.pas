@@ -49,6 +49,11 @@ type
     // unregister item
     procedure unregisterItem(group : TOPCGroup; item : TOPCItem);
     //************************************************
+    // change activity of group
+    procedure setOPCGroupActivity(group : TOPCGroup; active : boolean);
+    // change update time of group
+    procedure setOPCGroupUpdateTime(group : TOPCGroup; updateTime : DWord);
+    //************************************************
     // update groups from JAVA
     procedure updateGroups(PEnv: PJNIEnv; Obj: JObject);
     // store structure of opc to file
@@ -499,6 +504,26 @@ end;
 function TOPC.getDefaultQueue: TOPCQueue;
 begin
   Result := OPCQueue;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TOPC.setOPCGroupUpdateTime(group: TOPCGroup; updateTime: DWord);
+begin
+  group.setUpdateRate(updateTime);
+  HR := setGroupUpdateTime(group.GroupIf, group.getUpdateRate);
+  if not Succeeded(HR)
+  then GroupUpdateTimeException.create(GroupUpdateTimeExceptionText);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TOPC.setOPCGroupActivity(group: TOPCGroup; active: boolean);
+begin
+  group.setActive(active);
+  HR := SetGroupActivity(group.GroupIf, group.isActive);
+  if not Succeeded(HR)
+  then GroupActivityException.create(SGroupActivityException);
 end;
 
 end.

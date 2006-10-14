@@ -3,6 +3,8 @@ package javafish.clients.opc;
 import java.util.Arrays;
 
 import javafish.clients.opc.browser.JOPCBrowser;
+import javafish.clients.opc.exception.CoInitializeException;
+import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ConnectivityException;
 import javafish.clients.opc.exception.UnableAddGroupException;
 import javafish.clients.opc.exception.UnableAddItemException;
@@ -16,7 +18,13 @@ public class BrowserTest1 {
    * @param args
    */
   public static void main(String[] args) {
-    // JCustomOPC Clients test
+    try {
+      JOPCBrowser.coInitialize();
+    }
+    catch (CoInitializeException e1) {
+      e1.printStackTrace();
+    }
+    
     JOPCBrowser jbrowser = new JOPCBrowser("localhost", "Matrikon.OPC.Simulation", "JOPCBrowser1");
     try {
       jbrowser.connect();
@@ -41,7 +49,7 @@ public class BrowserTest1 {
         }
       }
       // disconnect server
-      jbrowser.disconnect();
+      JOPCBrowser.coUninitialize();
     }
     catch (UnableBrowseLeafException e) {
       e.printStackTrace();
@@ -53,6 +61,9 @@ public class BrowserTest1 {
       e.printStackTrace();
     }
     catch (UnableAddItemException e) {
+      e.printStackTrace();
+    }
+    catch (CoUninitializeException e) {
       e.printStackTrace();
     }
   }

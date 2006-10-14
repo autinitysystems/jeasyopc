@@ -12,9 +12,11 @@ import javafish.clients.opc.lang.Translate;
  */
 public class JEasyOPC extends JOPC {
   
-  private int WAITIME = 100; // ms
+  /** refresh for global asynch loop */
+  private final int WAITIME = 20; // ms
   
-  private int CONNTIME = 2000; // ms
+  /** timeout for connectivity checker */
+  private final int CONNTIME = 2000; // ms
   
   /** opc-client running thread */
   private boolean running = false;
@@ -34,21 +36,12 @@ public class JEasyOPC extends JOPC {
   }
   
   /**
-   * OPC server is active
+   * Asynch thread of client is active
    * 
-   * @return boolean
+   * @return is running, boolean
    */
   synchronized public boolean isRunning() {
     return running;
-  }
-  
-  /**
-   * Check connectivity client-server
-   * 
-   * @return is connected, boolean
-   */
-  synchronized public boolean isConnected() {
-    return connected;
   }
   
   /**
@@ -117,7 +110,6 @@ public class JEasyOPC extends JOPC {
       }
       catch (Exception e) {
         error(e);
-        disconnect();
         try {
           wait(CONNTIME); // try reconnect
         }
@@ -134,9 +126,6 @@ public class JEasyOPC extends JOPC {
     catch (UnableRemoveGroupException e) {
       error(e);
     }
-    
-    // disconnect from server
-    disconnect();
     
     connected = false;
     running = false;

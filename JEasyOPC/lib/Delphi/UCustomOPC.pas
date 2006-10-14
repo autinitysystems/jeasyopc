@@ -25,8 +25,6 @@ type
     constructor Create(host, ServerProgID, ServerClientHandle : string);
     // connect to server
     procedure connect; virtual;
-    // disconnect server
-    procedure disconnect;
     // get ServerIf interface
     function getServerIf : IOPCServer;
     // get server status
@@ -34,6 +32,8 @@ type
   end;
 
 implementation
+
+uses IdIcmpClient;
 
 // empty string for localhost connection
 function getHostName(str: string): string;
@@ -56,10 +56,6 @@ end;
 procedure TCustomOPC.connect;
 begin
   try
-    // among other things, this call makes sure that COM is initialized
-    Application.Initialize;
-    CoInitialize(nil);
-
     // we will use the custom OPC interfaces, and OPCProxy.dll will handle
     // marshaling for us automatically (if registered)
     if getHostName(Host) = '' // local
@@ -70,14 +66,9 @@ begin
     if ServerIf = nil
     then raise ConnectivityException.Create(ConnectivityExceptionText);
   except
-    on E:EOleSysError do
+    on E:Exception do
       raise ConnectivityException.Create(ConnectivityExceptionText);
   end;
-end;
-
-procedure TCustomOPC.disconnect;
-begin
-  CoUninitialize;
 end;
 
 function TCustomOPC.getServerStatus : boolean;
