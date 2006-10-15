@@ -25,6 +25,7 @@ type // NATIVE CODE EXCEPTIONS
   Asynch20UnadviseException   = class(Exception); // asynch 2.0 unadvise error
   GroupUpdateTimeException    = class(Exception); // change updateTime group error
   GroupActivityException      = class(Exception); // change activity of group
+  ItemActivityException       = class(Exception); // change activity of item
 
 const // NATIVE CODE EXCEPTIONS TEXT
   // exceptions text
@@ -44,6 +45,7 @@ const // NATIVE CODE EXCEPTIONS TEXT
   Asynch20UnadviseExceptionText   = 'Asynchronous unadvise 2.0 error.';
   GroupUpdateTimeExceptionText    = 'Update time of group cannot be changed.';
   GroupActivityExceptionText      = 'Activity of group cannot be changed.';
+  ItemActivityExceptionText       = 'Activity of item cannot be changed.';
 
 const // JAVA CODE EXCEPTIONS
   EXCPKG = 'javafish/clients/opc/exception/'; // standard exception package
@@ -70,6 +72,7 @@ const // JAVA CODE EXCEPTIONS
   SAsynch20UnadviseException   = EXCPKG + 'Asynch20UnadviseException';
   SGroupUpdateTimeException    = EXCPKG + 'GroupUpdateTimeException';
   SGroupActivityException      = EXCPKG + 'GroupActivityException';
+  SItemActivityException       = EXCPKG + 'ItemActivityException';
 
 implementation
 

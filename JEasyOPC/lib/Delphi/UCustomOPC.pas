@@ -73,7 +73,11 @@ end;
 
 function TCustomOPC.getServerStatus : boolean;
 begin
-  Result := Succeeded(ServerIf.getStatus(ppServerStatus));
+  try
+    Result := Succeeded(ServerIf.getStatus(ppServerStatus))
+  except
+    on E:Exception do Result := false;
+  end;
 end;
 
 function TCustomOPC.getServerIf: IOPCServer;

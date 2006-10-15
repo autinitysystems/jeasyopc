@@ -66,13 +66,17 @@ function SetGroupActivity(GroupIf: IUnknown; Active: bool): HRESULT;
 // change update time of group
 function SetGroupUpdateTime(GroupIf: IUnknown; UpdateTime : DWORD): HRESULT;
 
+// change activity of item
+function SetItemActivity(GroupIf: IUnknown; ItemHandle: OPCHANDLE; Active : boolean): HRESULT;
+
+// change position in tree of OPC Browser
+function ChangePosTo(Browse: IOPCBrowseServerAddressSpace; Path: string): HRESULT;
+
 //=============================================================================
 
 // added functions
 function GetGroupActive(GroupIf: IUnknown; var Active: boolean): HRESULT;
 function GetGroupInfo(GroupIf: IUnknown; var GInfo : string): HRESULT;
-function SetItemActivity(GroupIf: IUnknown; ItemHandle: OPCHANDLE; Active : boolean): HRESULT;
-function ChangePosTo(Browse: IOPCBrowseServerAddressSpace; Path: string): HRESULT;
 function DataType(Dtype: TVarType): string;
 
 implementation

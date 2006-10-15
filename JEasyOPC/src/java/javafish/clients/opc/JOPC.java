@@ -19,6 +19,7 @@ import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.GroupActivityException;
 import javafish.clients.opc.exception.GroupExistsException;
 import javafish.clients.opc.exception.GroupUpdateTimeException;
+import javafish.clients.opc.exception.ItemActivityException;
 import javafish.clients.opc.exception.SynchReadException;
 import javafish.clients.opc.exception.SynchWriteException;
 import javafish.clients.opc.exception.UnableAddGroupException;
@@ -63,53 +64,56 @@ public class JOPC extends JCustomOPC implements Runnable {
   // NATIVE CODE
   ////////////////
   
-  protected native void addNativeGroup(OPCGroup group);
+  private native void addNativeGroup(OPCGroup group);
   
-  protected native void updateNativeGroups();
+  private native void updateNativeGroups();
   
-  protected native void registerGroupNative(OPCGroup group)
+  private native void registerGroupNative(OPCGroup group)
     throws ComponentNotFoundException, UnableAddGroupException; 
   
-  protected native void registerItemNative(OPCGroup group, OPCItem item)
+  private native void registerItemNative(OPCGroup group, OPCItem item)
     throws ComponentNotFoundException, UnableAddItemException;
   
-  protected native void registerGroupsNative()
+  private native void registerGroupsNative()
     throws UnableAddGroupException, UnableAddItemException;
   
-  protected native void unregisterGroupNative(OPCGroup group)
+  private native void unregisterGroupNative(OPCGroup group)
     throws ComponentNotFoundException, UnableRemoveGroupException;
   
-  protected native void unregisterItemNative(OPCGroup group, OPCItem item)
+  private native void unregisterItemNative(OPCGroup group, OPCItem item)
     throws ComponentNotFoundException, UnableRemoveItemException;
   
-  protected native void unregisterGroupsNative()
+  private native void unregisterGroupsNative()
     throws UnableRemoveGroupException;
   
-  protected native OPCItem synchReadItemNative(OPCGroup group, OPCItem item)
+  private native OPCItem synchReadItemNative(OPCGroup group, OPCItem item)
     throws ComponentNotFoundException, SynchReadException;
 
-  protected native void synchWriteItemNative(OPCGroup group, OPCItem item)
+  private native void synchWriteItemNative(OPCGroup group, OPCItem item)
     throws ComponentNotFoundException, SynchWriteException;
   
-  protected native void asynch10ReadNative(OPCGroup group)
+  private native void asynch10ReadNative(OPCGroup group)
     throws ComponentNotFoundException, Asynch10ReadException;
   
-  protected native void asynch20ReadNative(OPCGroup group)
+  private native void asynch20ReadNative(OPCGroup group)
     throws ComponentNotFoundException, Asynch20ReadException;
   
-  protected native void asynch10UnadviseNative(OPCGroup group)
+  private native void asynch10UnadviseNative(OPCGroup group)
     throws ComponentNotFoundException, Asynch10UnadviseException;
   
-  protected native void asynch20UnadviseNative(OPCGroup group)
+  private native void asynch20UnadviseNative(OPCGroup group)
     throws ComponentNotFoundException, Asynch20UnadviseException;
   
-  protected native OPCGroup getDownloadGroupNative();
+  private native OPCGroup getDownloadGroupNative();
   
-  protected native void setGroupUpdateTimeNative(OPCGroup group, int updateTime)
-    throws GroupUpdateTimeException;
+  private native void setGroupUpdateTimeNative(OPCGroup group, int updateTime)
+    throws ComponentNotFoundException, GroupUpdateTimeException;
   
-  protected native void setGroupActivityNative(OPCGroup group, boolean active)
-    throws GroupActivityException;
+  private native void setGroupActivityNative(OPCGroup group, boolean active)
+    throws ComponentNotFoundException, GroupActivityException;
+  
+  private native void setItemActivityNative(OPCGroup group, OPCItem item, boolean active)
+    throws ComponentNotFoundException, ItemActivityException;
   
   ////////////////////////////////////////////////////////////////////////
   
@@ -514,11 +518,16 @@ public class JOPC extends JCustomOPC implements Runnable {
    * @param group OPCGroup
    * @param updateTime int
    * 
+   * @throws ComponentNotFoundException
    * @throws GroupUpdateTimeException
    */
-  public void setGroupUpdateTime(OPCGroup group, int updateTime) throws GroupUpdateTimeException {
+  public void setGroupUpdateTime(OPCGroup group, int updateTime) throws ComponentNotFoundException, GroupUpdateTimeException {
     try {
       setGroupUpdateTimeNative(group, updateTime);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          group.getGroupName());
     }
     catch (GroupUpdateTimeException e) {
       throw new GroupUpdateTimeException(Translate.getString("GROUP_UPDATETIME_EXCEPTION") + " " +
@@ -527,20 +536,50 @@ public class JOPC extends JCustomOPC implements Runnable {
   }
   
   /**
-   * Set new activity of group (change actie state)
+   * Set new activity of group (change active state)
    * 
    * @param group OPCGroup
    * @param active boolean
-   * 
+   *
+   * @throws ComponentNotFoundException
    * @throws GroupActivityException
    */
-  public void setGroupActivity(OPCGroup group, boolean active) throws GroupActivityException {
+  public void setGroupActivity(OPCGroup group, boolean active) throws ComponentNotFoundException, GroupActivityException {
     try {
       setGroupActivityNative(group, active);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          group.getGroupName());
     }
     catch (GroupActivityException e) {
       throw new GroupActivityException(Translate.getString("GROUP_ACTIVITY_EXCEPTION") + " " +
           group.getGroupName());
+    }
+  }
+  
+  /**
+   * Set new activity of item (change active state)
+   * 
+   * @param group OPCGroup
+   * @param item OPCItem
+   * @param active boolean
+   * 
+   * @throws ComponentNotFoundException
+   * @throws ItemActivityException
+   */
+  public void setItemActivity(OPCGroup group, OPCItem item, boolean active)
+      throws ComponentNotFoundException, ItemActivityException {
+    try {
+      setItemActivityNative(group, item, active);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ItemActivityException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          item.getItemName());
+    }
+    catch (ItemActivityException e) {
+      throw new ItemActivityException(Translate.getString("ITEM_ACTIVITY_EXCEPTION") + " " +
+          item.getItemName());
     }
   }
   

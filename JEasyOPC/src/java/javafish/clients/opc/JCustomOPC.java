@@ -182,15 +182,6 @@ abstract public class JCustomOPC implements OPCReportListener {
   }
 
   /**
-   * Return ID of OPC Client
-   * 
-   * @return id int
-   */
-  public int getIDClient() {
-    return id;
-  }
-
-  /**
    * Check connection between server and client
    * 
    * @return server is connected, boolean

@@ -627,6 +627,8 @@ begin
     // change updateTime in Java code
     groupNative.commit(PEnv, group);
   except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
     on E:GroupUpdateTimeException do
       throwException(PEnv, SGroupUpdateTimeException, PAnsiChar(E.Message));
   end;
@@ -647,7 +649,33 @@ begin
     // change active in Java code
     groupNative.commit(PEnv, group);
   except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
     on E:GroupActivityException do
+      throwException(PEnv, SGroupActivityException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
+procedure Java_javafish_clients_opc_JOPC_setItemActivityNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject; item : JObject; active : JBoolean); stdcall;
+var OPC : TOPC;
+    groupNative : TOPCGroup;
+    itemNative  : TOPCItem;
+begin
+  // change activity of group
+  OPC := TOPC(aopc[GetInt(ID, PEnv, Obj)]);
+  try
+    groupNative := OPC.getGroupByJavaCode(PEnv, group);
+    itemNative  := groupNative.getItemByJavaCode(PEnv, item);
+    OPC.setOPCItemActivity(groupNative, itemNative, active);
+    // change active in Java code
+    itemNative.commit(PEnv, item);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:ItemActivityException do
       throwException(PEnv, SGroupActivityException, PAnsiChar(E.Message));
   end;
 end;
@@ -685,6 +713,7 @@ exports
   Java_javafish_clients_opc_JOPC_asynch20UnadviseNative,
   Java_javafish_clients_opc_JOPC_getDownloadGroupNative,
   Java_javafish_clients_opc_JOPC_setGroupUpdateTimeNative,
-  Java_javafish_clients_opc_JOPC_setGroupActivityNative;
+  Java_javafish_clients_opc_JOPC_setGroupActivityNative,
+  Java_javafish_clients_opc_JOPC_setItemActivityNative;
 begin
 end.

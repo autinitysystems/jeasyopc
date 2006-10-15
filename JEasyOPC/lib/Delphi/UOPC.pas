@@ -53,6 +53,8 @@ type
     procedure setOPCGroupActivity(group : TOPCGroup; active : boolean);
     // change update time of group
     procedure setOPCGroupUpdateTime(group : TOPCGroup; updateTime : DWord);
+    // change activity of item
+    procedure setOPCItemActivity(group: TOPCGroup; item : TOPCItem; active: boolean);
     //************************************************
     // update groups from JAVA
     procedure updateGroups(PEnv: PJNIEnv; Obj: JObject);
@@ -524,6 +526,16 @@ begin
   HR := SetGroupActivity(group.GroupIf, group.isActive);
   if not Succeeded(HR)
   then GroupActivityException.create(SGroupActivityException);
+end;
+
+//------------------------------------------------------------------------------
+
+procedure TOPC.setOPCItemActivity(group: TOPCGroup; item : TOPCItem; active: boolean);
+begin
+  item.setActive(active);
+  HR := SetItemActivity(group.GroupIf, item.ItemHandle, item.isActive);
+  if not Succeeded(HR)
+  then ItemActivityException.create(SItemActivityException);
 end;
 
 end.

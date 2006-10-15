@@ -6,8 +6,10 @@ import javafish.clients.opc.component.OPCGroup;
 import javafish.clients.opc.component.OPCItem;
 import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
+import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.GroupActivityException;
 import javafish.clients.opc.exception.GroupUpdateTimeException;
+import javafish.clients.opc.exception.ItemActivityException;
 
 public class OPCTest8 implements OPCAsynchGroupListener {
   
@@ -65,6 +67,9 @@ public class OPCTest8 implements OPCAsynchGroupListener {
     catch (GroupActivityException e) {
       e.printStackTrace();
     }
+    catch (ComponentNotFoundException e) {
+      e.printStackTrace();
+    }
     
     synchronized(test) {
       test.wait(4000);
@@ -76,6 +81,9 @@ public class OPCTest8 implements OPCAsynchGroupListener {
     catch (GroupActivityException e) {
       e.printStackTrace();
     }
+    catch (ComponentNotFoundException e) {
+      e.printStackTrace();
+    }
 
     synchronized(test) {
       test.wait(4000);
@@ -85,8 +93,20 @@ public class OPCTest8 implements OPCAsynchGroupListener {
       jopc.setGroupUpdateTime(group, 100);
     }
     catch (GroupUpdateTimeException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
+    }
+    catch (ComponentNotFoundException e) {
+      e.printStackTrace();
+    }
+    
+    try {
+      jopc.setItemActivity(group, item8, false);
+    }
+    catch (ComponentNotFoundException e1) {
+      e1.printStackTrace();
+    }
+    catch (ItemActivityException e1) {
+      e1.printStackTrace();
     }
     
     synchronized(test) {
