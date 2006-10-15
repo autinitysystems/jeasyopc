@@ -56,7 +56,7 @@ public class OPCItem implements Cloneable {
   /**
    * Generate clientHandle by its owner
    * 
-   * @param OPCGroup group
+   * @param group OPCGroup
    */
   public void generateClientHandleByOwner(OPCGroup group) {
     clientHandle = group.getNewItemClientHandle();
@@ -166,7 +166,6 @@ public class OPCItem implements Cloneable {
    * Return clone of opc-item
    * 
    * @return item Object
-   * @Override
    */
   public Object clone() {
     OPCItem item = null;

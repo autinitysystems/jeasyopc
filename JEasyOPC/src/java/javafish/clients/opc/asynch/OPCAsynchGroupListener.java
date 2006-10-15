@@ -11,7 +11,7 @@ public interface OPCAsynchGroupListener extends EventListener {
   /**
    * Get asynchronous event
    * 
-   * @param AsynchEvent event
+   * @param event AsynchEvent
    */
   public void getAsynchEvent(AsynchEvent event);
 

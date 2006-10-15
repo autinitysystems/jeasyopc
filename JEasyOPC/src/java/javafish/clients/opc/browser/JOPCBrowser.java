@@ -84,7 +84,7 @@ public class JOPCBrowser extends JCustomOPC {
    * Structure: <i>fullItemName; itemType; itemName; [itemValue]</i>
    * 
    * @param leaf of branch (items) String
-   * @param download, if is true, Client downloads last value of items
+   * @param download - if is true, Client downloads last value of items
    * @return description of items String[]
    * 
    * @throws UnableBrowseLeafException

@@ -199,7 +199,6 @@ public class OPCGroup implements Cloneable {
    * Return clone of opc-group
    * 
    * @return group Object
-   * @Override
    */
   public Object clone() {
     OPCGroup group = null;
