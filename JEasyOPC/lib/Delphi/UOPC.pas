@@ -67,6 +67,8 @@ type
     function synchReadItem(PEnv: PJNIEnv; group: JObject; item: JObject) : JObject;
     // write item (Synch)
     procedure synchWriteItem(PEnv: PJNIEnv; group: JObject; item: JObject);
+    // read group (Synch), throws ComponentNotFoundException, SynchReadException
+    function synchReadGroup(PEnv: PJNIEnv; group: JObject) : JObject;
     //************************************************
     function getDefaultQueue : TOPCQueue;
     // activate asynch 1.0 reading (AdviseSink)
@@ -412,6 +414,25 @@ begin
     itm := itemNative.clone(PEnv, item);
     itemNative.commit(PEnv, itm);
     Result := itm;
+  end
+  else raise SynchReadException.create(SynchReadExceptionText);
+end;
+
+//------------------------------------------------------------------------------
+
+function TOPC.synchReadGroup(PEnv: PJNIEnv; group: JObject): JObject;
+var
+  groupNative : TOPCGroup;
+  grp         : JObject;
+begin
+  groupNative := getGroupByJavaCode(PEnv, group);
+
+  HR := ReadOPCGroupValues(groupNative);
+  if Succeeded(HR)
+  then begin
+    grp := groupNative.clone(PEnv, group);
+    groupNative.commit(PEnv, grp);
+    Result := grp;
   end
   else raise SynchReadException.create(SynchReadExceptionText);
 end;

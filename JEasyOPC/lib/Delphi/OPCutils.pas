@@ -20,7 +20,8 @@ uses
 {$IFDEF VER170}
   Variants,
 {$ENDIF}
-  Windows, ActiveX, OPCtypes, OPCDA, SysUtils, Dialogs;
+  Classes, Windows, ActiveX, OPCtypes, OPCDA, SysUtils, Dialogs, UOPCGroup,
+  UOPCItem;
 
 // Wrappers
 
@@ -45,6 +46,9 @@ function ReadOPCGroupItemValue(GroupIf: IUnknown; ItemServerHandle: OPCHANDLE;
 // synch write item value
 function WriteOPCGroupItemValue(GroupIf: IUnknown; ItemServerHandle: OPCHANDLE;
           ItemValue: OleVariant): HResult;
+
+// synch read of group: IOPCSyncIO.Read
+function ReadOPCGroupValues(OPCGroup : TOPCGroup): HResult;
 
 // asynch 1.0 (AdviseSink) reading
 function GroupAdviseTime(GroupIf: IUnknown; Sink: IAdviseSink;
@@ -319,6 +323,58 @@ begin
     begin
       Result := Errors[0];
       CoTaskMemFree(Errors);
+    end;
+  end;
+end;
+
+// wrapper for IOPCSyncIO.Read (group)
+function ReadOPCGroupValues(OPCGroup : TOPCGroup): HResult;
+var
+  SyncIOIf   : IOPCSyncIO;
+  Errors     : PResultList;
+  ItemValues : POPCITEMSTATEARRAY;
+  i          : integer;
+  items      : TList;
+  ItemServerHandles : POPCHANDLEARRAY;
+begin
+  Result := E_FAIL;
+  try
+    SyncIOIf := OPCGroup.GroupIf as IOPCSyncIO;
+  except
+    SyncIOIf := nil;
+  end;
+  if SyncIOIf <> nil then
+  begin
+    // prepare server handles of items
+    New(ItemServerHandles);
+    items := OPCGroup.getItems;
+    for i:=0 to items.count-1 do
+      ItemServerHandles[i] := TOPCItem(items[i]).ItemHandle;
+
+    Result := SyncIOIf.Read(OPC_DS_CACHE, items.count, ItemServerHandles,
+      ItemValues, Errors);
+
+    // free memory
+    Dispose(ItemServerHandles);
+
+    if Succeeded(Result) then
+    begin
+      for i:=0 to items.count-1 do
+      begin
+        if Succeeded(Errors[i])
+        then begin
+          TOPCItem(items[i]).setItemValue(VarToStr(ItemValues[i].vDataValue));
+          TOPCItem(items[i]).setItemQuality(ItemValues[i].wQuality);
+          TOPCItem(items[i]).setTimeStamp(Now); // set actual timeStamp (System time)
+        end // Error in communication (different from bad quality of item)
+        else Result := Errors[i];
+        // clear variant type
+        VariantClear(ItemValues[i].vDataValue);
+      end;
+
+      // clear memory
+      CoTaskMemFree(Errors);
+      CoTaskMemFree(ItemValues);
     end;
   end;
 end;

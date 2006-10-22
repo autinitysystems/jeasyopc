@@ -92,6 +92,9 @@ public class JOPC extends JCustomOPC implements Runnable {
   private native void synchWriteItemNative(OPCGroup group, OPCItem item)
     throws ComponentNotFoundException, SynchWriteException;
   
+  private native OPCGroup synchReadGroupNative(OPCGroup group)
+    throws ComponentNotFoundException, SynchReadException;
+  
   private native void asynch10ReadNative(OPCGroup group)
     throws ComponentNotFoundException, Asynch10ReadException;
   
@@ -410,6 +413,29 @@ public class JOPC extends JCustomOPC implements Runnable {
     }
     catch (SynchWriteException e) {
       throw new SynchWriteException(Translate.getString("SYNCH_WRITE_EXCEPTION"));
+    }
+  }
+  
+  /**
+   * Synchronous reading of group
+   * 
+   * @param group OPCGroup
+   * @return group with response (clone) OPCGroup
+   * 
+   * @throws ComponentNotFoundException
+   * @throws SynchReadException
+   */
+  public OPCGroup synchReadGroup(OPCGroup group) 
+      throws ComponentNotFoundException, SynchReadException {
+    try {
+      return synchReadGroupNative(group);
+    }
+    catch (ComponentNotFoundException e) {
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          group.getGroupName());
+    }
+    catch (SynchReadException e) {
+      throw new SynchReadException(Translate.getString("SYNCH_READ_EXCEPTION"));
     }
   }
   

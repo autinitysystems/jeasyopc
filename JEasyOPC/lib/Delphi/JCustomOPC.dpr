@@ -351,6 +351,21 @@ end;
 
 //------------------------------------------------------------------------------
 
+function Java_javafish_clients_opc_JOPC_synchReadGroupNative(PEnv: PJNIEnv;
+  Obj: JObject; group : JObject) : JObject; stdcall;
+begin
+  try
+    Result := TOPC(aopc[GetInt(ID, PEnv, Obj)]).synchReadGroup(PEnv, group);
+  except
+    on E:ComponentNotFoundException do
+      throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
+    on E:SynchReadException do
+      throwException(PEnv, SSynchReadException, PAnsiChar(E.Message));
+  end;
+end;
+
+//------------------------------------------------------------------------------
+
 procedure Java_javafish_clients_opc_JOPC_registerGroupNative(PEnv: PJNIEnv;
   Obj: JObject; group : JObject); stdcall;
 var OPC : TOPC;
@@ -707,6 +722,7 @@ exports
   Java_javafish_clients_opc_JOPC_unregisterGroupsNative,
   Java_javafish_clients_opc_JOPC_synchReadItemNative,
   Java_javafish_clients_opc_JOPC_synchWriteItemNative,
+  Java_javafish_clients_opc_JOPC_synchReadGroupNative,
   Java_javafish_clients_opc_JOPC_asynch10ReadNative,
   Java_javafish_clients_opc_JOPC_asynch20ReadNative,
   Java_javafish_clients_opc_JOPC_asynch10UnadviseNative,
