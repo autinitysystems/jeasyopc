@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 /**
- * JCustomOPC Client
+ * JCustomOpc Client
  * abstract class
  * 
  * @author arnal2@seznam.cz
@@ -58,7 +58,7 @@ abstract public class JCustomOpc implements OpcReportListener {
 
   static {
     // load native library OPC Client
-    System.loadLibrary("lib/JCustomOPC");
+    System.loadLibrary("lib/JCustomOpc");
   }
 
   /**
@@ -76,7 +76,7 @@ abstract public class JCustomOpc implements OpcReportListener {
     // init logger
     PropertyConfigurator.configure(PropertyLoader.getDefaultLoggerProperties());
     
-    // create native child of CustomOPC client
+    // create native child of CustomOpc client
     newInstance(getParentClass().getName(), host, serverProgID, serverClientHandle);
     
     // create standard reporting listener

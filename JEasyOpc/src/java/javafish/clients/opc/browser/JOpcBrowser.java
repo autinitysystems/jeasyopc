@@ -26,13 +26,13 @@ public class JOpcBrowser extends JCustomOpc {
     super(host, serverProgID, serverClientHandle);
   }
   
-  private static native String[] getOPCServersNative(String host)
+  private static native String[] getOpcServersNative(String host)
     throws HostException, NotFoundServersException;
   
-  private native String[] getOPCBranchNative(String branch)
+  private native String[] getOpcBranchNative(String branch)
     throws UnableBrowseBranchException, UnableIBrowseException;
   
-  private native String[] getOPCItemsNative(String leaf, boolean download)
+  private native String[] getOpcItemsNative(String leaf, boolean download)
     throws UnableBrowseLeafException, UnableIBrowseException,
     UnableAddGroupException, UnableAddItemException;
   
@@ -46,7 +46,7 @@ public class JOpcBrowser extends JCustomOpc {
    */
   public static String[] getOPCServers(String host) throws HostException, NotFoundServersException {
     try {
-      return getOPCServersNative(host);
+      return getOpcServersNative(host);
     }
     catch (HostException e) {
       throw new HostException(Translate.getString("HOST_EXCEPTION") + " " + host);
@@ -67,7 +67,7 @@ public class JOpcBrowser extends JCustomOpc {
    */
   public String[] getOPCBranch(String branch) throws UnableBrowseBranchException, UnableIBrowseException {
     try {
-      return getOPCBranchNative(branch);
+      return getOpcBranchNative(branch);
     }
     catch (UnableBrowseBranchException e) {
       throw new UnableBrowseBranchException(Translate.getString("UNABLE_BROWSE_BRANCH_EXCEPTION"));
@@ -95,7 +95,7 @@ public class JOpcBrowser extends JCustomOpc {
   public String[] getOPCItems(String leaf, boolean download) throws UnableBrowseLeafException,
       UnableIBrowseException, UnableAddGroupException, UnableAddItemException{
     try {
-      return getOPCItemsNative(leaf, download);
+      return getOpcItemsNative(leaf, download);
     }
     catch (UnableBrowseLeafException e) {
       throw new UnableBrowseLeafException(Translate.getString("UNABLE_BROWSE_LEAF_EXCEPTION"));
