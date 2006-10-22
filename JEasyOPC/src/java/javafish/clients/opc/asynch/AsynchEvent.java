@@ -2,7 +2,7 @@ package javafish.clients.opc.asynch;
 
 import java.awt.AWTEvent;
 
-import javafish.clients.opc.component.OPCGroup;
+import javafish.clients.opc.component.OpcGroup;
 
 
 /**
@@ -11,10 +11,10 @@ import javafish.clients.opc.component.OPCGroup;
 public class AsynchEvent extends AWTEvent {
   private static final long serialVersionUID = -3603520013179390255L;
   
-  private OPCGroup group;
+  private OpcGroup group;
   
   //private OPCGroup group;
-  public AsynchEvent(Object source, int id, OPCGroup group) {
+  public AsynchEvent(Object source, int id, OpcGroup group) {
     super(source, id);
     this.group = group;
   }
@@ -24,7 +24,7 @@ public class AsynchEvent extends AWTEvent {
    * 
    * @return group OPCGroup
    */
-  public OPCGroup getOPCGroup() {
+  public OpcGroup getOPCGroup() {
     return group;
   }
 

@@ -4,15 +4,15 @@ import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ConnectivityException;
 
-public class OPCTest2 {
+public class TryOpcConnectionExample {
 
   public static int iter = 0;
 
   public static void main(String[] args) throws InterruptedException {
     // JCustomOPC Clients test
     try {
-      JOPC.coInitialize();
-      JOPC jopc = new JOPC("localhost", "Matrikon.OPC.Simulation", "JCustomOPC");
+      JOpc.coInitialize();
+      JOpc jopc = new JOpc("localhost", "Matrikon.OPC.Simulation", "JCustomOPC");
 
       jopc.connect();
       while (true) {
@@ -23,7 +23,7 @@ public class OPCTest2 {
           break;
         }
       }
-      JOPC.coUninitialize();
+      JOpc.coUninitialize();
     }
     catch (CoInitializeException e) {
       e.printStackTrace();

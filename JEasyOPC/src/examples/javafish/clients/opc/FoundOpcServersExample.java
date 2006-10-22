@@ -2,18 +2,18 @@ package javafish.clients.opc;
 
 import java.util.Arrays;
 
-import javafish.clients.opc.browser.JOPCBrowser;
+import javafish.clients.opc.browser.JOpcBrowser;
 import javafish.clients.opc.exception.HostException;
 import javafish.clients.opc.exception.NotFoundServersException;
 
-public class OPCTest {
+public class FoundOpcServersExample {
 
   /**
    * @param args
    */
   public static void main(String[] args) {
     try {
-      String[] servers = JOPCBrowser.getOPCServers("localhost");
+      String[] servers = JOpcBrowser.getOPCServers("localhost");
       if (servers != null) {
         System.out.println(Arrays.asList(servers));
       } else {

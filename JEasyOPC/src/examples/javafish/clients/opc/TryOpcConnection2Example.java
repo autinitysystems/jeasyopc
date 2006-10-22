@@ -1,28 +1,28 @@
 package javafish.clients.opc;
 
-import javafish.clients.opc.component.OPCGroup;
-import javafish.clients.opc.component.OPCItem;
+import javafish.clients.opc.component.OpcGroup;
+import javafish.clients.opc.component.OpcItem;
 import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ConnectivityException;
 
-public class OPCTest3 {
+public class TryOpcConnection2Example {
 
   /**
    * @param args
    */
   public static void main(String[] args) {
     try {
-      JOPC.coInitialize();
+      JOpc.coInitialize();
     }
     catch (CoInitializeException e1) {
       e1.printStackTrace();
     }
     
-    JOPC jopc = new JOPC("localhost", "Matrikon.OPC.Simulation", "JOPC1");
+    JOpc jopc = new JOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     
-    OPCItem item1 = new OPCItem("Random.Real8", true, "", 0);
-    OPCGroup group = new OPCGroup("group1", false, 500, 0.0f);
+    OpcItem item1 = new OpcItem("Random.Real8", true, "", 0);
+    OpcGroup group = new OpcGroup("group1", false, 500, 0.0f);
     
     group.addItem(item1);
     
@@ -38,7 +38,7 @@ public class OPCTest3 {
     }
     
     try {
-      JOPC.coUninitialize();
+      JOpc.coUninitialize();
     }
     catch (CoUninitializeException e) {
       e.printStackTrace();

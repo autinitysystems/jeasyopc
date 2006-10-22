@@ -1,83 +1,86 @@
 package javafish.clients.opc;
 
-import javafish.clients.opc.component.OPCGroup;
-import javafish.clients.opc.component.OPCItem;
+import javafish.clients.opc.component.OpcGroup;
+import javafish.clients.opc.component.OpcItem;
 import javafish.clients.opc.exception.Asynch10ReadException;
 import javafish.clients.opc.exception.Asynch10UnadviseException;
-import javafish.clients.opc.exception.Asynch20ReadException;
-import javafish.clients.opc.exception.Asynch20UnadviseException;
 import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.ConnectivityException;
 import javafish.clients.opc.exception.CoUninitializeException;
+import javafish.clients.opc.exception.GroupActivityException;
+import javafish.clients.opc.exception.GroupUpdateTimeException;
 import javafish.clients.opc.exception.UnableAddGroupException;
 import javafish.clients.opc.exception.UnableAddItemException;
 
-public class OPCTest7 {
+public class AsynchReadAndGroupActivityExample {
 
   /**
    * @param args
    * @throws InterruptedException 
    */
   public static void main(String[] args) throws InterruptedException {
-    OPCTest7 test = new OPCTest7();
+    AsynchReadAndGroupActivityExample test = new AsynchReadAndGroupActivityExample();
     
     try {
-      JOPC.coInitialize();
+      JOpc.coInitialize();
     }
     catch (CoInitializeException e1) {
       e1.printStackTrace();
     }
     
-    JOPC jopc = new JOPC("localhost", "Matrikon.OPC.Simulation", "JOPC1");
-    JEasyOPC jopc2 = new JEasyOPC("localhost", "Matrikon.OPC.Simulation", "JOPC2");
+    JOpc jopc = new JOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     
-    OPCItem item1 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item2 = new OPCItem("Random.Real8", true, "", 0);
-    OPCGroup group = new OPCGroup("group1", true, 1000, 0.0f);
-
-    OPCItem item3 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item4 = new OPCItem("Random.Real8", true, "", 0);
-    OPCGroup group2 = new OPCGroup("group2", true, 2500, 0.0f);
+    OpcItem item1 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item2 = new OpcItem("Random.Real8", true, "", 0);
+    OpcGroup group = new OpcGroup("group1", true, 2000, 0.0f);
     
     group.addItem(item1);
     group.addItem(item2);
     
-    group2.addItem(item3);
-    group2.addItem(item4);
-    
     jopc.addGroup(group);
-    jopc2.addGroup(group2);
     
     try {
       jopc.connect();
-      jopc2.connect();
-      jopc.debug("OPC client is connected...");
+      System.out.println("OPC client is connected...");
       
       jopc.registerGroups();
-      jopc2.registerGroups();
-      jopc.debug("OPC groups are registered...");
+      System.out.println("OPC groups are registered...");
       
       jopc.asynch10Read(group);
-      jopc2.asynch20Read(group2);
-      jopc.debug("OPC asynchronous reading is applied...");
+      System.out.println("OPC asynchronous reading is applied...");
       
-      OPCGroup downGroup;
-      OPCGroup downGroup2;
+      OpcGroup downGroup;
       
       long start = System.currentTimeMillis();
-      while ((System.currentTimeMillis() - start) < 30000) {
+      while ((System.currentTimeMillis() - start) < 10000) {
         jopc.ping();
-        jopc2.ping();
-        
         downGroup = jopc.getDownloadGroup();
         if (downGroup != null) {
           System.out.println(downGroup);
         }
         
-        downGroup2 = jopc2.getDownloadGroup();
-        if (downGroup2 != null) {
-          System.out.println(downGroup2);
+        if ((System.currentTimeMillis() - start) >= 6000) {
+          jopc.setGroupActivity(group, false);
+        }
+        
+        synchronized(test) {
+          test.wait(50);       
+        }
+      }
+      
+      // change activity
+      jopc.setGroupActivity(group, true);
+      
+      // change updateTime
+      jopc.setGroupUpdateTime(group, 100);
+      
+      start = System.currentTimeMillis();
+      while ((System.currentTimeMillis() - start) < 10000) {
+        jopc.ping();
+        downGroup = jopc.getDownloadGroup();
+        if (downGroup != null) {
+          System.out.println(downGroup);
         }
         
         synchronized(test) {
@@ -86,12 +89,12 @@ public class OPCTest7 {
       }
       
       jopc.asynch10Unadvise(group);
-      jopc2.asynch20Unadvise(group2);
-      jopc.debug("OPC asynchronous reading is unadvise...");
+      System.out.println("OPC asynchronous reading is unadvise...");
       
-      JOPC.coUninitialize();
-      jopc.debug("Program terminated...");
+      JOpc.coUninitialize();
+      System.out.println("Program terminated...");
       
+      System.out.println("");
     }
     catch (ConnectivityException e) {
       e.printStackTrace();
@@ -111,10 +114,10 @@ public class OPCTest7 {
     catch (Asynch10UnadviseException e) {
       e.printStackTrace();
     }
-    catch (Asynch20ReadException e) {
+    catch (GroupUpdateTimeException e) {
       e.printStackTrace();
     }
-    catch (Asynch20UnadviseException e) {
+    catch (GroupActivityException e) {
       e.printStackTrace();
     }
     catch (CoUninitializeException e) {

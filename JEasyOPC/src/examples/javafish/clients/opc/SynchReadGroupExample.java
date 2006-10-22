@@ -1,7 +1,7 @@
 package javafish.clients.opc;
 
-import javafish.clients.opc.component.OPCGroup;
-import javafish.clients.opc.component.OPCItem;
+import javafish.clients.opc.component.OpcGroup;
+import javafish.clients.opc.component.OpcItem;
 import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
@@ -10,24 +10,24 @@ import javafish.clients.opc.exception.SynchReadException;
 import javafish.clients.opc.exception.UnableAddGroupException;
 import javafish.clients.opc.exception.UnableAddItemException;
 
-public class OPCTest10 {
+public class SynchReadGroupExample {
   public static void main(String[] args) throws InterruptedException {
-    OPCTest10 test = new OPCTest10();
+    SynchReadGroupExample test = new SynchReadGroupExample();
     
     try {
-      JOPC.coInitialize();
+      JOpc.coInitialize();
     }
     catch (CoInitializeException e1) {
       e1.printStackTrace();
     }
     
-    JOPC jopc = new JOPC("localhost", "Matrikon.OPC.Simulation", "JOPC1");
+    JOpc jopc = new JOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     
-    OPCItem item1 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item2 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item3 = new OPCItem("Random.Real8", true, "", 0);
+    OpcItem item1 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item2 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item3 = new OpcItem("Random.Real8", true, "", 0);
     
-    OPCGroup group = new OPCGroup("group1", true, 10, 0.0f);
+    OpcGroup group = new OpcGroup("group1", true, 10, 0.0f);
     
     group.addItem(item1);
     group.addItem(item2);
@@ -67,7 +67,7 @@ public class OPCTest10 {
       }
       
       try {
-        OPCGroup responseGroup = jopc.synchReadGroup(group);
+        OpcGroup responseGroup = jopc.synchReadGroup(group);
         System.out.println(responseGroup);
       }
       catch (ComponentNotFoundException e1) {
@@ -79,7 +79,7 @@ public class OPCTest10 {
     }
     
     try {
-      JOPC.coUninitialize();
+      JOpc.coUninitialize();
     }
     catch (CoUninitializeException e) {
       e.printStackTrace();

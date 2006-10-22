@@ -1,9 +1,9 @@
 package javafish.clients.opc;
 
 import javafish.clients.opc.asynch.AsynchEvent;
-import javafish.clients.opc.asynch.OPCAsynchGroupListener;
-import javafish.clients.opc.component.OPCGroup;
-import javafish.clients.opc.component.OPCItem;
+import javafish.clients.opc.asynch.OpcAsynchGroupListener;
+import javafish.clients.opc.component.OpcGroup;
+import javafish.clients.opc.component.OpcItem;
 import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
@@ -11,30 +11,30 @@ import javafish.clients.opc.exception.GroupActivityException;
 import javafish.clients.opc.exception.GroupUpdateTimeException;
 import javafish.clients.opc.exception.ItemActivityException;
 
-public class OPCTest8 implements OPCAsynchGroupListener {
+public class JEasyOpcExample implements OpcAsynchGroupListener {
   
   public static void main(String[] args) throws InterruptedException {
-    OPCTest8 test = new OPCTest8();
+    JEasyOpcExample test = new JEasyOpcExample();
     
     try {
-      JOPC.coInitialize();
+      JOpc.coInitialize();
     }
     catch (CoInitializeException e1) {
       e1.printStackTrace();
     }
     
-    JEasyOPC jopc = new JEasyOPC("localhost", "Matrikon.OPC.Simulation", "JOPC1");
+    JEasyOpc jopc = new JEasyOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     
-    OPCItem item1 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item2 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item3 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item4 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item5 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item6 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item7 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item8 = new OPCItem("Random.Real8", true, "", 0);
+    OpcItem item1 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item2 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item3 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item4 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item5 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item6 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item7 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item8 = new OpcItem("Random.Real8", true, "", 0);
     
-    OPCGroup group = new OPCGroup("group1", true, 2000, 0.0f);
+    OpcGroup group = new OpcGroup("group1", true, 2000, 0.0f);
     
     group.addItem(item1);
     group.addItem(item2);
@@ -120,7 +120,7 @@ public class OPCTest8 implements OPCAsynchGroupListener {
     }
     
     try {
-      JOPC.coUninitialize();
+      JOpc.coUninitialize();
     }
     catch (CoUninitializeException e) {
       e.printStackTrace();
@@ -128,7 +128,7 @@ public class OPCTest8 implements OPCAsynchGroupListener {
   }
 
   public void getAsynchEvent(AsynchEvent event) {
-    System.out.println(((JCustomOPC)event.getSource()).getFullOPCServerName() + "=>");
+    System.out.println(((JCustomOpc)event.getSource()).getFullOPCServerName() + "=>");
     System.out.println("Package: " + event.getID());
     System.out.println(event.getOPCGroup());
   }

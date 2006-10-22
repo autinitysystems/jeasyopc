@@ -1,7 +1,7 @@
 package javafish.clients.opc;
 
-import javafish.clients.opc.component.OPCGroup;
-import javafish.clients.opc.component.OPCItem;
+import javafish.clients.opc.component.OpcGroup;
+import javafish.clients.opc.component.OpcItem;
 import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.ConnectivityException;
@@ -13,25 +13,25 @@ import javafish.clients.opc.exception.UnableAddItemException;
 import javafish.clients.opc.exception.UnableRemoveGroupException;
 import javafish.clients.opc.exception.UnableRemoveItemException;
 
-public class OPCTest5 {
+public class SynchReadWriteExample {
 
   /**
    * @param args
    * @throws InterruptedException 
    */
   public static void main(String[] args) throws InterruptedException {
-    JOPC jopc = new JOPC("localhost", "Matrikon.OPC.Simulation", "JOPC1");
+    JOpc jopc = new JOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     
     try {
-      JOPC.coInitialize();
+      JOpc.coInitialize();
     }
     catch (CoInitializeException e1) {
       e1.printStackTrace();
     }
     
-    OPCItem item1 = new OPCItem("Random.Real8", true, "", 0);
-    OPCItem item2 = new OPCItem("Bucket Brigade.Real4", true, "", 0);
-    OPCGroup group = new OPCGroup("group1", true, 500, 0.0f);
+    OpcItem item1 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item2 = new OpcItem("Bucket Brigade.Real4", true, "", 0);
+    OpcGroup group = new OpcGroup("group1", true, 500, 0.0f);
     
     group.addItem(item1);
     group.addItem(item2);
@@ -49,7 +49,7 @@ public class OPCTest5 {
       System.out.println("Item was registred...");
       
       // synchronous reading
-      OPCItem itemRead = null;
+      OpcItem itemRead = null;
       for (int i = 0; i < 2; i++) {
         Thread.sleep(2000);
         
@@ -73,7 +73,7 @@ public class OPCTest5 {
       
       System.out.println("Group was unregistred...");
       
-      JOPC.coUninitialize();
+      JOpc.coUninitialize();
       System.out.println("OPC is disconnected...");
     }
     catch (ConnectivityException e) {

@@ -2,7 +2,7 @@ package javafish.clients.opc;
 
 import java.util.Arrays;
 
-import javafish.clients.opc.browser.JOPCBrowser;
+import javafish.clients.opc.browser.JOpcBrowser;
 import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ConnectivityException;
@@ -12,20 +12,20 @@ import javafish.clients.opc.exception.UnableBrowseBranchException;
 import javafish.clients.opc.exception.UnableBrowseLeafException;
 import javafish.clients.opc.exception.UnableIBrowseException;
 
-public class BrowserTest1 {
+public class BrowserExample {
 
   /**
    * @param args
    */
   public static void main(String[] args) {
     try {
-      JOPCBrowser.coInitialize();
+      JOpcBrowser.coInitialize();
     }
     catch (CoInitializeException e1) {
       e1.printStackTrace();
     }
     
-    JOPCBrowser jbrowser = new JOPCBrowser("localhost", "Matrikon.OPC.Simulation", "JOPCBrowser1");
+    JOpcBrowser jbrowser = new JOpcBrowser("localhost", "Matrikon.OPC.Simulation", "JOPCBrowser1");
     try {
       jbrowser.connect();
       String[] branches = jbrowser.getOPCBranch("");
@@ -49,7 +49,7 @@ public class BrowserTest1 {
         }
       }
       // disconnect server
-      JOPCBrowser.coUninitialize();
+      JOpcBrowser.coUninitialize();
     }
     catch (UnableBrowseLeafException e) {
       e.printStackTrace();
