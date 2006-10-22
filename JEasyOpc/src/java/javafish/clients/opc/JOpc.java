@@ -134,7 +134,7 @@ public class JOpc extends JCustomOpc implements Runnable {
    * <p>
    * <i>NOTE:</i> GroupExistsException - runtime exception
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    */
   public void addGroup(OpcGroup group) {
     if (!groups.containsKey(new Integer(group.getClientHandle()))) {
@@ -152,7 +152,7 @@ public class JOpc extends JCustomOpc implements Runnable {
    * <p>
    * <i>NOTE:</i> GroupExistsException - runtime exception
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    */
   public void removeGroup(OpcGroup group) {
     if (groups.containsKey(new Integer(group.getClientHandle()))) {
@@ -168,7 +168,7 @@ public class JOpc extends JCustomOpc implements Runnable {
    * Get group by its clientHandle identification.
    * 
    * @param clientHandle int
-   * @return group OPCGroup
+   * @return group OpcGroup
    */
   public OpcGroup getGroupByClientHandle(int clientHandle) {
     return groups.get(new Integer(clientHandle));
@@ -177,7 +177,7 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Get opc-groups as array.
    * 
-   * @return groups OPCGroup[]
+   * @return groups OpcGroup[]
    */
   public OpcGroup[] getGroupsAsArray() {
     int i = 0;
@@ -198,7 +198,7 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Add asynch-group listener
    * 
-   * @param listener OPCReportListener
+   * @param listener OpcReportListener
    */
   public void addAsynchGroupListener(OpcAsynchGroupListener listener) {
     List list = Arrays.asList(asynchGroupListeners.getListenerList());
@@ -210,7 +210,7 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Remove asynch-group listener
    * 
-   * @param listener OPCReportListener
+   * @param listener OpcReportListener
    */
   public void removeAsynchGroupListener(OpcAsynchGroupListener listener) {
     List list = Arrays.asList(asynchGroupListeners.getListenerList());
@@ -222,9 +222,9 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Send opc-group in asynchronous mode (1.0, 2.0)
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    */
-  protected void sendOPCGroup(OpcGroup group) {
+  protected void sendOpcGroup(OpcGroup group) {
     Object[] list = asynchGroupListeners.getListenerList();
     for (int i = 0; i < list.length; i += 2) {
       Class listenerClass = (Class)(list[i]);
@@ -239,7 +239,7 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Register group to opc-server.
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    * 
    * @throws ComponentNotFoundException
    * @throws UnableAddGroupException
@@ -262,8 +262,8 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Register item (in group) to opc-server.
    * 
-   * @param group OPCGroup
-   * @param item OPCItem
+   * @param group OpcGroup
+   * @param item OpcItem
    * 
    * @throws ComponentNotFoundException
    * @throws UnableAddItemException
@@ -308,7 +308,7 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Unregister group from opc-server. 
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    * 
    * @throws ComponentNotFoundException
    * @throws UnableRemoveGroupException
@@ -331,8 +331,8 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Unregister item (in group) from opc-server.
    * 
-   * @param group OPCGroup
-   * @param item OPCItem
+   * @param group OpcGroup
+   * @param item OpcItem
    * 
    * @throws ComponentNotFoundException
    * @throws UnableRemoveItemException
@@ -372,9 +372,9 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Synchronous reading of one item in specific group. 
    * 
-   * @param group OPCGroup
-   * @param item OPCItem
-   * @return item OPCItem
+   * @param group OpcGroup
+   * @param item OpcItem
+   * @return item OpcItem
    * 
    * @throws ComponentNotFoundException
    * @throws SynchReadException
@@ -396,8 +396,8 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Synchronous writing of one item in specific group.
    * 
-   * @param group OPCGroup
-   * @param item OPCItem
+   * @param group OpcGroup
+   * @param item OpcItem
    * 
    * @throws ComponentNotFoundException
    * @throws SynchWriteException
@@ -419,7 +419,7 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Synchronous reading of group
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    * @return group with response (clone) OPCGroup
    * 
    * @throws ComponentNotFoundException
@@ -442,7 +442,7 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Asynchronous 1.0 reading (AdviseSink) - start 
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    * 
    * @throws ComponentNotFoundException
    * @throws Asynch10ReadException
@@ -464,7 +464,8 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Asynchronous 2.0 reading (Callback) - start 
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
+   * 
    * @throws ComponentNotFoundException
    * @throws Asynch20ReadException
    */
@@ -485,7 +486,8 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Asynchronous 1.0 unadvise reading (AdviseSink) - terminate 
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
+   * 
    * @throws ComponentNotFoundException
    * @throws Asynch10UnadviseException
    */
@@ -507,7 +509,7 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Asynchronous 2.0 unadvise reading (Callback) - terminate 
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    * 
    * @throws ComponentNotFoundException
    * @throws Asynch20UnadviseException
@@ -532,7 +534,7 @@ public class JOpc extends JCustomOpc implements Runnable {
    * <i>NOTE:</i> Asynchronous mode, OPC-Queue of downloaded groups,
    * OPCGroup can be NULL. 
    * 
-   * @return group OPCGroup
+   * @return group OpcGroup
    */
   public OpcGroup getDownloadGroup() {
     return getDownloadGroupNative();
@@ -541,7 +543,7 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Set new updateTime of group (refresh rate)
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    * @param updateTime int
    * 
    * @throws ComponentNotFoundException
@@ -564,7 +566,7 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Set new activity of group (change active state)
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    * @param active boolean
    *
    * @throws ComponentNotFoundException
@@ -587,8 +589,8 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Set new activity of item (change active state)
    * 
-   * @param group OPCGroup
-   * @param item OPCItem
+   * @param group OpcGroup
+   * @param item OpcItem
    * @param active boolean
    * 
    * @throws ComponentNotFoundException

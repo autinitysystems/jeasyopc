@@ -128,7 +128,7 @@ public class JEasyOpcExample implements OpcAsynchGroupListener {
   }
 
   public void getAsynchEvent(AsynchEvent event) {
-    System.out.println(((JCustomOpc)event.getSource()).getFullOPCServerName() + "=>");
+    System.out.println(((JCustomOpc)event.getSource()).getFullOpcServerName() + "=>");
     System.out.println("Package: " + event.getID());
     System.out.println(event.getOPCGroup());
   }

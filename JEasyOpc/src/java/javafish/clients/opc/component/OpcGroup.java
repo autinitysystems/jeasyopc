@@ -50,7 +50,7 @@ public class OpcGroup implements Cloneable {
   /**
    * Generate clientHandle by its owner
    * 
-   * @param opc JOPC
+   * @param opc JOpc
    */
   public void generateClientHandleByOwner(JOpc opc) {
     clientHandle = opc.getNewGroupClientHandle();
@@ -95,7 +95,7 @@ public class OpcGroup implements Cloneable {
   /**
    * Get items as array
    * 
-   * @return items OPCItem[]
+   * @return items OpcItem[]
    */
   public OpcItem[] getItemsAsArray() {
     int i = 0;
@@ -111,7 +111,7 @@ public class OpcGroup implements Cloneable {
    * <p>
    * <i>note:</i> throws ItemExistsException - runtime exception
    * 
-   * @param item OPCItem
+   * @param item OpcItem
    */
   public void addItem(OpcItem item) {
     if (!items.containsKey(new Integer(item.getClientHandle()))) {
@@ -128,7 +128,7 @@ public class OpcGroup implements Cloneable {
    * <p>
    * <i>note:</i> throws ItemExistsException - runtime exception
    * 
-   * @param item OPCItem
+   * @param item OpcItem
    */
   public void removeItem(OpcItem item) {
     if (items.containsKey(new Integer(item.getClientHandle()))) {
@@ -189,7 +189,7 @@ public class OpcGroup implements Cloneable {
    * Get opc-item by its clientHandle
    * 
    * @param clientHandle int 
-   * @return item OPCItem
+   * @return item OpcItem
    */
   public OpcItem getItemByClientHandle(int clientHandle) {
     return items.get(new Integer(clientHandle));

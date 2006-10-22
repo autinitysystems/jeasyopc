@@ -56,7 +56,7 @@ public class OpcItem implements Cloneable {
   /**
    * Generate clientHandle by its owner
    * 
-   * @param group OPCGroup
+   * @param group OpcGroup
    */
   public void generateClientHandleByOwner(OpcGroup group) {
     clientHandle = group.getNewItemClientHandle();

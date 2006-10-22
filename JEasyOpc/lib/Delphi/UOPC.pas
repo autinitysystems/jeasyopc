@@ -267,7 +267,7 @@ begin
 
   // get group from groups map by its clientHandle
   getGroupsAsArray := JVM.GetMethodID(Cls, 'getGroupsAsArray',
-    '()[Ljavafish/clients/opc/component/OPCGroup;');
+    '()[Ljavafish/clients/opc/component/OpcGroup;');
   agroups := JArray(JVM.CallObjectMethodA(Obj, getGroupsAsArray, nil));
 
   groupsCount := JVM.GetArrayLength(agroups);

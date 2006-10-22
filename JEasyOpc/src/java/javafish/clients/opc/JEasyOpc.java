@@ -25,7 +25,7 @@ public class JEasyOpc extends JOpc {
   private boolean connected = false;
 
   /**
-   * Create new JEasyOPC client
+   * Create new JEasyOpc client
    * 
    * @param host String
    * @param serverProgID String
@@ -87,7 +87,7 @@ public class JEasyOpc extends JOpc {
           OpcGroup group = getDownloadGroup();
           
           if (group != null) { // send to listeners
-            sendOPCGroup(group);
+            sendOpcGroup(group);
           }
           
           try { // sleep time

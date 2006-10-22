@@ -177,8 +177,8 @@ abstract public class JCustomOpc implements OpcReportListener {
    * 
    * @return String
    */
-  public String getFullOPCServerName() {
-    return host + "//" + serverProgID + " (" + serverClientHandle + ")";
+  public String getFullOpcServerName() {
+    return host + "//" + serverProgID + " (" + serverClientHandle + ")" + " [" + id + "]";
   }
 
   /**
@@ -244,7 +244,7 @@ abstract public class JCustomOpc implements OpcReportListener {
   /**
    * Add opc-report listener
    * 
-   * @param listener OPCReportListener
+   * @param listener OpcReportListener
    */
   public void addOPCReportListener(OpcReportListener listener) {
     List list = Arrays.asList(reportListeners.getListenerList());
@@ -256,7 +256,7 @@ abstract public class JCustomOpc implements OpcReportListener {
   /**
    * Remove opc-report listener
    * 
-   * @param listener OPCReportListener
+   * @param listener OpcReportListener
    */
   public void removeOPCReportListener(OpcReportListener listener) {
     List list = Arrays.asList(reportListeners.getListenerList());

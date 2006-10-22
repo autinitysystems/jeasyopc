@@ -232,7 +232,7 @@ begin
   // update items
   // get group from groups map by its clientHandle
   getItemsAsArray := JVM.GetMethodID(groupClass, 'getItemsAsArray',
-    '()[Ljavafish/clients/opc/component/OPCItem;');
+    '()[Ljavafish/clients/opc/component/OpcItem;');
   aitems := JArray(JVM.CallObjectMethodA(group, getItemsAsArray, nil));
   itemsCount := JVM.GetArrayLength(aitems);
   setLength(cha, itemsCount);
@@ -307,7 +307,7 @@ begin
 
   // commit to items
   getItemsAsArray := JVM.GetMethodID(groupClass, 'getItemsAsArray',
-    '()[Ljavafish/clients/opc/component/OPCItem;');
+    '()[Ljavafish/clients/opc/component/OpcItem;');
   aitems := JArray(JVM.CallObjectMethodA(group, getItemsAsArray, nil));
   itemsCount := JVM.GetArrayLength(aitems);
 
