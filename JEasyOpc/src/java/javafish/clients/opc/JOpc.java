@@ -137,6 +137,8 @@ public class JOpc extends JCustomOpc implements Runnable {
    * @param group OpcGroup
    */
   public void addGroup(OpcGroup group) {
+    if (group == null) return;
+    
     if (!groups.containsKey(new Integer(group.getClientHandle()))) {
       group.generateClientHandleByOwner(this); // set clientHandle
       addNativeGroup(group);
@@ -246,6 +248,7 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public void registerGroup(OpcGroup group)  
       throws ComponentNotFoundException, UnableAddGroupException {
+    if (group == null) return;
     try {
       registerGroupNative(group);
     }
