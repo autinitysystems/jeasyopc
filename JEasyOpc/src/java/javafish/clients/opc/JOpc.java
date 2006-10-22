@@ -273,6 +273,8 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public void registerItem(OpcGroup group, OpcItem item) 
       throws ComponentNotFoundException, UnableAddItemException {
+    if (group == null) return;
+    if (item == null) return;
     try {
       registerItemNative(group, item);
     }
@@ -318,6 +320,7 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public void unregisterGroup(OpcGroup group) 
       throws ComponentNotFoundException, UnableRemoveGroupException {
+    if (group == null) return;
     try {
       unregisterGroupNative(group);
     }
@@ -342,6 +345,8 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public void unregisterItem(OpcGroup group, OpcItem item) 
       throws ComponentNotFoundException, UnableRemoveItemException {
+    if (group == null) return;
+    if (item == null) return;
     try {
       unregisterItemNative(group, item);
     }
@@ -385,11 +390,14 @@ public class JOpc extends JCustomOpc implements Runnable {
   public OpcItem synchReadItem(OpcGroup group, OpcItem item) 
       throws ComponentNotFoundException, SynchReadException {
     try {
+      if (group == null || item == null) {
+        throw new ComponentNotFoundException("NullPointerException");
+      }
       return synchReadItemNative(group, item);
     }
     catch (ComponentNotFoundException e) {
       throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
-          item.getItemName());
+          ((item == null) ? "null" : item.getItemName()));
     }
     catch (SynchReadException e) {
       throw new SynchReadException(Translate.getString("SYNCH_READ_EXCEPTION"));
@@ -408,11 +416,14 @@ public class JOpc extends JCustomOpc implements Runnable {
   public void synchWriteItem(OpcGroup group, OpcItem item) 
       throws ComponentNotFoundException, SynchWriteException  {
     try {
+      if (group == null || item == null) {
+        throw new ComponentNotFoundException("NullPointerException");
+      }
       synchWriteItemNative(group, item);
     }
     catch (ComponentNotFoundException e) {
       throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
-          item.getItemName());
+          (item == null ? "null" : item.getItemName()));
     }
     catch (SynchWriteException e) {
       throw new SynchWriteException(Translate.getString("SYNCH_WRITE_EXCEPTION"));
@@ -431,11 +442,14 @@ public class JOpc extends JCustomOpc implements Runnable {
   public OpcGroup synchReadGroup(OpcGroup group) 
       throws ComponentNotFoundException, SynchReadException {
     try {
+      if (group == null) {
+        throw new ComponentNotFoundException("NullPointerException");
+      }
       return synchReadGroupNative(group);
     }
     catch (ComponentNotFoundException e) {
       throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
-          group.getGroupName());
+          (group == null ? "null" : group.getGroupName()));
     }
     catch (SynchReadException e) {
       throw new SynchReadException(Translate.getString("SYNCH_READ_EXCEPTION"));
