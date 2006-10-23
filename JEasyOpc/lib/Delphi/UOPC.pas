@@ -510,7 +510,7 @@ procedure TOPC.asynch10Unadvise(group: TOPCGroup);
 begin
   HR := GroupUnadvise(group.GroupIf, AsyncConnection);
   if not Succeeded(HR)
-  then Asynch10UnadviseException.create(Asynch10UnadviseExceptionText);
+  then raise Asynch10UnadviseException.create(Asynch10UnadviseExceptionText);
 end;
 
 //------------------------------------------------------------------------------
@@ -519,7 +519,7 @@ procedure TOPC.asynch20Unadvise(group: TOPCGroup);
 begin
   HR := GroupUnadvise2(group.GroupIf, AsyncConnection);
   if not Succeeded(HR)
-  then Asynch20UnadviseException.create(Asynch20UnadviseExceptionText);
+  then raise Asynch20UnadviseException.create(Asynch20UnadviseExceptionText);
 end;
 
 //------------------------------------------------------------------------------
@@ -533,30 +533,45 @@ end;
 
 procedure TOPC.setOPCGroupUpdateTime(group: TOPCGroup; updateTime: DWord);
 begin
-  group.setUpdateRate(updateTime);
-  HR := setGroupUpdateTime(group.GroupIf, group.getUpdateRate);
-  if not Succeeded(HR)
-  then GroupUpdateTimeException.create(GroupUpdateTimeExceptionText);
+  try
+    group.setUpdateRate(updateTime);
+    HR := setGroupUpdateTime(group.GroupIf, group.getUpdateRate);
+    if not Succeeded(HR)
+    then raise GroupUpdateTimeException.create(GroupUpdateTimeExceptionText);
+  except
+    on E:Exception do
+      raise GroupUpdateTimeException.create(GroupUpdateTimeExceptionText);
+  end;
 end;
 
 //------------------------------------------------------------------------------
 
 procedure TOPC.setOPCGroupActivity(group: TOPCGroup; active: boolean);
 begin
-  group.setActive(active);
-  HR := SetGroupActivity(group.GroupIf, group.isActive);
-  if not Succeeded(HR)
-  then GroupActivityException.create(SGroupActivityException);
+  try
+    group.setActive(active);
+    HR := SetGroupActivity(group.GroupIf, group.isActive);
+    if not Succeeded(HR)
+    then raise GroupActivityException.create(SGroupActivityException);
+  except
+    on E:Exception do
+      raise GroupActivityException.create(SGroupActivityException);
+  end;
 end;
 
 //------------------------------------------------------------------------------
 
 procedure TOPC.setOPCItemActivity(group: TOPCGroup; item : TOPCItem; active: boolean);
 begin
-  item.setActive(active);
-  HR := SetItemActivity(group.GroupIf, item.ItemHandle, item.isActive);
-  if not Succeeded(HR)
-  then ItemActivityException.create(SItemActivityException);
+  try
+    item.setActive(active);
+    HR := SetItemActivity(group.GroupIf, item.ItemHandle, item.isActive);
+    if not Succeeded(HR)
+    then raise ItemActivityException.create(SItemActivityException);
+  except
+    on E:Exception do
+      raise ItemActivityException.create(SItemActivityException);
+  end;
 end;
 
 end.

@@ -6,11 +6,18 @@ import javafish.clients.opc.asynch.AsynchEvent;
 import javafish.clients.opc.asynch.OpcAsynchGroupListener;
 import javafish.clients.opc.component.OpcGroup;
 import javafish.clients.opc.component.OpcItem;
+import javafish.clients.opc.exception.Asynch10ReadException;
+import javafish.clients.opc.exception.Asynch10UnadviseException;
+import javafish.clients.opc.exception.Asynch20ReadException;
+import javafish.clients.opc.exception.Asynch20UnadviseException;
 import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.ConnectivityException;
+import javafish.clients.opc.exception.GroupActivityException;
 import javafish.clients.opc.exception.GroupExistsException;
+import javafish.clients.opc.exception.GroupUpdateTimeException;
+import javafish.clients.opc.exception.ItemActivityException;
 import javafish.clients.opc.exception.SynchReadException;
 import javafish.clients.opc.exception.SynchWriteException;
 import javafish.clients.opc.exception.UnableAddGroupException;
@@ -42,8 +49,8 @@ public class JOpcTest extends TestCase {
     item1 = new OpcItem(serverProps.getProperty("itemTag1"), true, "", 0);
     item2 = new OpcItem(serverProps.getProperty("itemTag1"), true, "", 0);
     itemWrite = new OpcItem(serverProps.getProperty("itemTagWrite1"), true, "", 0);
-    group = new OpcGroup("group1", true, 2000, 0.0f);
-    group2 = new OpcGroup("group2", true, 500, 0.0f);
+    group = new OpcGroup("group1", true, 100, 0.0f);
+    group2 = new OpcGroup("group2", true, 2000, 0.0f);
     
     group.addItem(item1);
     group.addItem(item2);
@@ -583,7 +590,7 @@ public class JOpcTest extends TestCase {
     }
     
     try {
-      Thread.sleep(2000);
+      Thread.sleep(4000);
     }
     catch (InterruptedException e) {
       fail(e.getMessage());
@@ -605,36 +612,559 @@ public class JOpcTest extends TestCase {
     }
   }
 
-  public void testAsynch10Read() {
-    fail("Not yet implemented");
+  public void testAsynch10ReadAndUnadvise() {
+    try {
+      opc.asynch10Read(null);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      assertTrue(true);
+    }
+    catch (Asynch10ReadException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.asynch10Read(group);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      assertTrue(true);
+    }
+    catch (Asynch10ReadException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.asynch10Unadvise(null);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e1) {
+      assertTrue(true);
+    }
+    catch (Asynch10UnadviseException e1) {
+      fail(e1.getMessage());
+    }
+    
+    try {
+      opc.asynch10Unadvise(group);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e1) {
+      assertTrue(true);
+    }
+    catch (Asynch10UnadviseException e1) {
+      fail(e1.getMessage());
+    }
+    
+    opc.addGroup(group);
+    
+    try {
+      opc.asynch10Unadvise(group);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e1) {
+      fail(e1.getMessage());
+    }
+    catch (Asynch10UnadviseException e1) {
+      assertTrue(true);
+    }
+    
+    try {
+      opc.asynch10Read(group);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      fail(e.getMessage());
+    }
+    catch (Asynch10ReadException e) {
+      assertTrue(true);
+    }
+    
+    try {
+      opc.registerGroups();
+    }
+    catch (UnableAddGroupException e) {
+      fail(e.getMessage());
+    }
+    catch (UnableAddItemException e) {
+      fail(e.getMessage());
+    }
+    
+    AsynchListenerTest asynchTestListener = new AsynchListenerTest(); 
+    opc.addAsynchGroupListener(asynchTestListener);
+    
+    try {
+      Thread.sleep(2000);
+    }
+    catch (InterruptedException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.asynch10Read(group);
+    }
+    catch (ComponentNotFoundException e) {
+      fail(e.getMessage());
+    }
+    catch (Asynch10ReadException e) {
+      fail(e.getMessage());
+    }
+    
+    int count = 10;
+    int cc = 0;
+    while (cc++ < count) {
+      try {
+        Thread.sleep(100);
+      }
+      catch (InterruptedException e) {
+        fail(e.getMessage());
+      }
+      opc.ping();
+      OpcGroup downGroup = opc.getDownloadGroup();
+      if (downGroup != null) {
+        opc.sendOpcGroup(downGroup);
+      }
+    }
+    if (asynchTestListener.count == 0) {
+      assertTrue(false);
+    }
+    
+    try {
+      opc.asynch10Unadvise(group);
+      assertTrue(true);
+    }
+    catch (ComponentNotFoundException e1) {
+      fail(e1.getMessage());
+    }
+    catch (Asynch10UnadviseException e1) {
+      fail(e1.getMessage());
+    }
   }
 
-  public void testAsynch20Read() {
-    fail("Not yet implemented");
-  }
-
-  public void testAsynch10Unadvise() {
-    fail("Not yet implemented");
-  }
-
-  public void testAsynch20Unadvise() {
-    fail("Not yet implemented");
-  }
-
-  public void testGetDownloadGroup() {
-    fail("Not yet implemented");
+  public void testAsynch20ReadAndUnadvise() {
+    try {
+      opc.asynch20Read(null);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      assertTrue(true);
+    }
+    catch (Asynch20ReadException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.asynch20Read(group);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      assertTrue(true);
+    }
+    catch (Asynch20ReadException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.asynch20Unadvise(null);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e1) {
+      assertTrue(true);
+    }
+    catch (Asynch20UnadviseException e1) {
+      fail(e1.getMessage());
+    }
+    
+    try {
+      opc.asynch20Unadvise(group);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e1) {
+      assertTrue(true);
+    }
+    catch (Asynch20UnadviseException e1) {
+      fail(e1.getMessage());
+    }
+    
+    opc.addGroup(group);
+    
+    try {
+      opc.asynch20Unadvise(group);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e1) {
+      fail(e1.getMessage());
+    }
+    catch (Asynch20UnadviseException e1) {
+      assertTrue(true);
+    }
+    
+    try {
+      opc.asynch20Read(group);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      fail(e.getMessage());
+    }
+    catch (Asynch20ReadException e) {
+      assertTrue(true);
+    }
+    
+    try {
+      opc.registerGroups();
+    }
+    catch (UnableAddGroupException e) {
+      fail(e.getMessage());
+    }
+    catch (UnableAddItemException e) {
+      fail(e.getMessage());
+    }
+    
+    AsynchListenerTest asynchTestListener = new AsynchListenerTest(); 
+    opc.addAsynchGroupListener(asynchTestListener);
+    
+    try {
+      Thread.sleep(2000);
+    }
+    catch (InterruptedException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.asynch20Read(group);
+    }
+    catch (ComponentNotFoundException e) {
+      fail(e.getMessage());
+    }
+    catch (Asynch20ReadException e) {
+      fail(e.getMessage());
+    }
+    
+    int count = 10;
+    int cc = 0;
+    while (cc++ < count) {
+      try {
+        Thread.sleep(100);
+      }
+      catch (InterruptedException e) {
+        fail(e.getMessage());
+      }
+      opc.ping();
+      OpcGroup downGroup = opc.getDownloadGroup();
+      if (downGroup != null) {
+        opc.sendOpcGroup(downGroup);
+      }
+    }
+    if (asynchTestListener.count == 0) {
+      assertTrue(false);
+    }
+    
+    try {
+      opc.asynch20Unadvise(group);
+      assertTrue(true);
+    }
+    catch (ComponentNotFoundException e1) {
+      fail(e1.getMessage());
+    }
+    catch (Asynch20UnadviseException e1) {
+      fail(e1.getMessage());
+    }
   }
 
   public void testSetGroupUpdateTime() {
-    fail("Not yet implemented");
+    try {
+      opc.setGroupUpdateTime(null, 100);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e2) {
+      assertTrue(true);
+    }
+    catch (GroupUpdateTimeException e2) {
+      fail(e2.getMessage());
+    }
+    
+    try {
+      opc.setGroupUpdateTime(group, 100);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e2) {
+      assertTrue(true);
+    }
+    catch (GroupUpdateTimeException e2) {
+      fail(e2.getMessage());
+    }
+    
+    opc.addGroup(group);
+    
+    try {
+      opc.setGroupUpdateTime(group, 100);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e2) {
+      fail(e2.getMessage());
+    }
+    catch (GroupUpdateTimeException e2) {
+      assertTrue(true);
+    }
+    
+    try {
+      opc.registerGroups();
+      AsynchListenerTest asynchTestListener = new AsynchListenerTest(); 
+      opc.addAsynchGroupListener(asynchTestListener);
+      try {
+        Thread.sleep(2000);
+      }
+      catch (InterruptedException e1) {
+        fail(e1.getMessage());
+      }
+      try {
+        opc.asynch10Read(group);
+        int count = 10;
+        int cc = 0;
+        while (cc++ < count) {
+          try {
+            Thread.sleep(100);
+          }
+          catch (InterruptedException e1) {
+            fail(e1.getMessage());
+          }
+          opc.ping();
+          OpcGroup downGroup = opc.getDownloadGroup();
+          if (downGroup != null) {
+            opc.sendOpcGroup(downGroup);
+          }
+        }
+        
+        try {
+          opc.setGroupUpdateTime(group, 100);
+          cc = 0;
+          while (cc++ < count) {
+            try {
+              Thread.sleep(100);
+            }
+            catch (InterruptedException e1) {
+              fail(e1.getMessage());
+            }
+            opc.ping();
+            OpcGroup downGroup = opc.getDownloadGroup();
+            if (downGroup != null) {
+              opc.sendOpcGroup(downGroup);
+            }
+          }
+          
+          asynchTestListener.testUpdateTime(group.getUpdateRate());
+          
+          try {
+            opc.asynch10Unadvise(group);
+          }
+          catch (Asynch10UnadviseException e) {
+            fail(e.getMessage());
+          }
+        }
+        catch (GroupUpdateTimeException e) {
+          fail(e.getMessage());
+        }
+      }
+      catch (ComponentNotFoundException e) {
+        fail(e.getMessage());
+      }
+      catch (Asynch10ReadException e) {
+        fail(e.getMessage());
+      }
+    }
+    catch (UnableAddGroupException e) {
+      fail(e.getMessage());
+    }
+    catch (UnableAddItemException e) {
+      fail(e.getMessage());
+    }
   }
 
   public void testSetGroupActivity() {
-    fail("Not yet implemented");
+    try {
+      opc.setGroupActivity(null, true);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      assertTrue(true);
+    }
+    catch (GroupActivityException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.setGroupActivity(group, true);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      assertTrue(true);
+    }
+    catch (GroupActivityException e) {
+      fail(e.getMessage());
+    }
+    
+    opc.addGroup(group);
+    
+    try {
+      opc.setGroupActivity(group, true);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      fail(e.getMessage());
+    }
+    catch (GroupActivityException e) {
+      assertTrue(true);
+    }
+    
+    try {
+      opc.registerGroups();
+    }
+    catch (UnableAddGroupException e) {
+      fail(e.getMessage());
+    }
+    catch (UnableAddItemException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.setGroupActivity(group, false);
+    }
+    catch (ComponentNotFoundException e) {
+      fail(e.getMessage());
+    }
+    catch (GroupActivityException e) {
+      fail(e.getMessage());
+    }
+    
+    assertEquals(false, group.isActive());
+    
+    try {
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e1) {
+      fail(e1.getMessage());
+    }
+    
+    try {
+      opc.setGroupActivity(group, true);
+    }
+    catch (ComponentNotFoundException e) {
+      fail(e.getMessage());
+    }
+    catch (GroupActivityException e) {
+      fail(e.getMessage());
+    }
+    
+    assertEquals(true, group.isActive());
+    
+    try {
+      opc.unregisterGroups();
+    }
+    catch (UnableRemoveGroupException e) {
+      fail(e.getMessage());
+    }
   }
 
   public void testSetItemActivity() {
-    fail("Not yet implemented");
+    try {
+      opc.setItemActivity(null, null, true);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      assertTrue(true);
+    }
+    catch (ItemActivityException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.setItemActivity(group, item1, true);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      assertTrue(true);
+    }
+    catch (ItemActivityException e) {
+      fail(e.getMessage());
+    }
+    
+    opc.addGroup(group);
+    
+    try {
+      opc.setItemActivity(group, item1, true);
+      assertTrue(false);
+    }
+    catch (ComponentNotFoundException e) {
+      fail(e.getMessage());
+    }
+    catch (ItemActivityException e) {
+      assertTrue(true);
+    }
+    
+    try {
+      opc.registerGroups();
+    }
+    catch (UnableAddGroupException e) {
+      fail(e.getMessage());
+    }
+    catch (UnableAddItemException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.setItemActivity(group, item1, false);
+      assertEquals(false, item1.isActive());
+    }
+    catch (ComponentNotFoundException e) {
+      fail(e.getMessage());
+    }
+    catch (ItemActivityException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.setItemActivity(group, item1, true);
+      assertEquals(true, item1.isActive());
+    }
+    catch (ComponentNotFoundException e) {
+      fail(e.getMessage());
+    }
+    catch (ItemActivityException e) {
+      fail(e.getMessage());
+    }
+    
+    try {
+      opc.unregisterGroups();
+    }
+    catch (UnableRemoveGroupException e) {
+      fail(e.getMessage());
+    }
+  }
+  
+  /**
+   * Asynch listener for JUnit tests 
+   */
+  class AsynchListenerTest implements OpcAsynchGroupListener {
+    public int count = 0;
+    private OpcGroup group;
+    
+    public void getAsynchEvent(AsynchEvent event) {
+      group = event.getOPCGroup();
+      assertEquals(group.getGroupName(), group.getGroupName());
+      count++;
+    }
+    
+    public void testUpdateTime(int expected) {
+      assertEquals(expected, group.getUpdateRate());      
+    }
   }
 
 }

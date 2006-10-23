@@ -691,7 +691,7 @@ begin
     on E:ComponentNotFoundException do
       throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
     on E:ItemActivityException do
-      throwException(PEnv, SGroupActivityException, PAnsiChar(E.Message));
+      throwException(PEnv, SItemActivityException, PAnsiChar(E.Message));
   end;
 end;
 

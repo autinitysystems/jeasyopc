@@ -466,11 +466,14 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public void asynch10Read(OpcGroup group) throws ComponentNotFoundException, Asynch10ReadException {
     try {
+      if (group == null) {
+        throw new ComponentNotFoundException("NullPointerException");
+      }
       asynch10ReadNative(group);
     }
     catch (ComponentNotFoundException e) {
       throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
-          group.getGroupName());
+          (group == null ? "null" : group.getGroupName()));
     }
     catch (Asynch10ReadException e) {
       throw new Asynch10ReadException(Translate.getString("ASYNCH_10_READ_EXCEPTION") + " " +
@@ -488,11 +491,14 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public void asynch20Read(OpcGroup group) throws ComponentNotFoundException, Asynch20ReadException {
     try {
+      if (group == null) {
+        throw new ComponentNotFoundException("NullPointerException");
+      }
       asynch20ReadNative(group);
     }
     catch (ComponentNotFoundException e) {
       throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
-          group.getGroupName());
+          (group == null ? "null" : group.getGroupName()));
     }
     catch (Asynch20ReadException e) {
       throw new Asynch20ReadException(Translate.getString("ASYNCH_20_READ_EXCEPTION") + " " +
@@ -510,14 +516,17 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public void asynch10Unadvise(OpcGroup group) throws ComponentNotFoundException, Asynch10UnadviseException {
     try {
+      if (group == null) {
+        throw new ComponentNotFoundException("NullPointerException");
+      }
       asynch10UnadviseNative(group);
     }
     catch (ComponentNotFoundException e) {
       throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
-          group.getGroupName());
+          (group == null ? "null" : group.getGroupName()));
     }
     catch (Asynch10UnadviseException e) {
-      throw new Asynch10UnadviseException(Translate.getString("ASYNCH_20_UNADVISE_EXCEPTION") + " " +
+      throw new Asynch10UnadviseException(Translate.getString("ASYNCH_10_UNADVISE_EXCEPTION") + " " +
           group.getGroupName());
     }
   }
@@ -533,11 +542,14 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public void asynch20Unadvise(OpcGroup group) throws ComponentNotFoundException, Asynch20UnadviseException {
     try {
+      if (group == null) {
+        throw new ComponentNotFoundException("NullPointerException");
+      }
       asynch20UnadviseNative(group);
     }
     catch (ComponentNotFoundException e) {
       throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
-          group.getGroupName());
+          (group == null ? "null" : group.getGroupName()));
     }
     catch (Asynch20UnadviseException e) {
       throw new Asynch20UnadviseException(Translate.getString("ASYNCH_20_UNADVISE_EXCEPTION") + " " +
@@ -568,11 +580,14 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public void setGroupUpdateTime(OpcGroup group, int updateTime) throws ComponentNotFoundException, GroupUpdateTimeException {
     try {
+      if (group == null) {
+        throw new ComponentNotFoundException("NullPointerException");
+      }
       setGroupUpdateTimeNative(group, updateTime);
     }
     catch (ComponentNotFoundException e) {
       throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
-          group.getGroupName());
+          (group == null ? "null" : group.getGroupName()));
     }
     catch (GroupUpdateTimeException e) {
       throw new GroupUpdateTimeException(Translate.getString("GROUP_UPDATETIME_EXCEPTION") + " " +
@@ -591,11 +606,14 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public void setGroupActivity(OpcGroup group, boolean active) throws ComponentNotFoundException, GroupActivityException {
     try {
+      if (group == null) {
+        throw new ComponentNotFoundException("NullPointerException");
+      }
       setGroupActivityNative(group, active);
     }
     catch (ComponentNotFoundException e) {
       throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
-          group.getGroupName());
+          (group == null ? "null" : group.getGroupName()));
     }
     catch (GroupActivityException e) {
       throw new GroupActivityException(Translate.getString("GROUP_ACTIVITY_EXCEPTION") + " " +
@@ -616,11 +634,14 @@ public class JOpc extends JCustomOpc implements Runnable {
   public void setItemActivity(OpcGroup group, OpcItem item, boolean active)
       throws ComponentNotFoundException, ItemActivityException {
     try {
+      if (group == null || item == null) {
+        throw new ComponentNotFoundException("NullPointerException");
+      }
       setItemActivityNative(group, item, active);
     }
     catch (ComponentNotFoundException e) {
-      throw new ItemActivityException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
-          item.getItemName());
+      throw new ComponentNotFoundException(Translate.getString("COMPONENT_NOT_FOUND_EXCEPTION") + " " +
+          (item == null ? "null" : item.getItemName()));
     }
     catch (ItemActivityException e) {
       throw new ItemActivityException(Translate.getString("ITEM_ACTIVITY_EXCEPTION") + " " +
