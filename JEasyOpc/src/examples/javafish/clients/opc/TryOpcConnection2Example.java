@@ -21,7 +21,7 @@ public class TryOpcConnection2Example {
     
     JOpc jopc = new JOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     
-    OpcItem item1 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item1 = new OpcItem("Random.Real8", true, "");
     OpcGroup group = new OpcGroup("group1", false, 500, 0.0f);
     
     group.addItem(item1);

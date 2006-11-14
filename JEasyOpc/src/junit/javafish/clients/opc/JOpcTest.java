@@ -25,6 +25,7 @@ import javafish.clients.opc.exception.UnableAddItemException;
 import javafish.clients.opc.exception.UnableRemoveGroupException;
 import javafish.clients.opc.exception.UnableRemoveItemException;
 import javafish.clients.opc.property.PropertyLoader;
+import javafish.clients.opc.variant.Variant;
 import junit.framework.TestCase;
 
 public class JOpcTest extends TestCase {
@@ -46,9 +47,9 @@ public class JOpcTest extends TestCase {
         serverProps.getProperty("serverProgID"),
         serverProps.getProperty("clientHandle"));
     
-    item1 = new OpcItem(serverProps.getProperty("itemTag1"), true, "", 0);
-    item2 = new OpcItem(serverProps.getProperty("itemTag1"), true, "", 0);
-    itemWrite = new OpcItem(serverProps.getProperty("itemTagWrite1"), true, "", 0);
+    item1 = new OpcItem(serverProps.getProperty("itemTag1"), true, "");
+    item2 = new OpcItem(serverProps.getProperty("itemTag1"), true, "");
+    itemWrite = new OpcItem(serverProps.getProperty("itemTagWrite1"), true, "");
     group = new OpcGroup("group1", true, 100, 0.0f);
     group2 = new OpcGroup("group2", true, 2000, 0.0f);
     
@@ -509,7 +510,7 @@ public class JOpcTest extends TestCase {
       fail(e.getMessage());
     }
     
-    itemWrite.setValue("10.0");
+    itemWrite.setValue(new Variant(10.0));
     
     try {
       opc.synchWriteItem(group, itemWrite);
@@ -532,7 +533,8 @@ public class JOpcTest extends TestCase {
     try {
       item = opc.synchReadItem(group, itemWrite);
       assertTrue(item.isQuality());
-      assertEquals(itemWrite.getValue(), item.getValue());
+      assertEquals("Compare input/output",
+          itemWrite.getValue().getDouble(), item.getValue().getDouble(), 0.001);
     }
     catch (ComponentNotFoundException e) {
       fail(e.getMessage());

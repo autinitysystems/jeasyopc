@@ -2,6 +2,8 @@ package javafish.clients.opc.component;
 
 import java.util.GregorianCalendar;
 
+import javafish.clients.opc.variant.Variant;
+
 /**
  * OPC Item class
  */
@@ -25,14 +27,11 @@ public class OpcItem implements Cloneable {
   private GregorianCalendar timeStamp;
   
   /* value */
-  private String itemValue;
+  private Variant itemValue;
   
   /* quality of item */
   private boolean itemQuality;
   
-  /* opc data type of item */
-  private int dataType;
-
   public boolean isActive() {
     return active;
   }
@@ -45,12 +44,13 @@ public class OpcItem implements Cloneable {
    * @param accessPath String
    * @param dataType int
    */
-  public OpcItem(String itemName, boolean active, String accessPath, int dataType) {
+  public OpcItem(String itemName, boolean active, String accessPath) {
     clientHandle = -1; // not assigned
+    timeStamp = new GregorianCalendar();
+    itemValue = new Variant();
     this.itemName = itemName;
     this.active = active;
     this.accessPath = accessPath;
-    this.dataType = dataType;
   }
   
   /**
@@ -90,20 +90,20 @@ public class OpcItem implements Cloneable {
   }
 
   /**
-   * Get value (String)
+   * Get value (Variant)
    * 
-   * @return value String
+   * @return value Variant
    */
-  public String getValue() {
+  public Variant getValue() {
     return itemValue;
   }
 
   /**
-   * Set value (String)
+   * Set value (Variant)
    * 
-   * @param itemValue String
+   * @param itemValue Variant
    */
-  public void setValue(String itemValue) {
+  public void setValue(Variant itemValue) {
     this.itemValue = itemValue;
   }
 
@@ -150,7 +150,7 @@ public class OpcItem implements Cloneable {
    * @return type int
    */
   public int getDataType() {
-    return dataType;
+    return (itemValue != null)? itemValue.getVariantType() : Variant.VT_EMPTY;
   }
 
   /**
@@ -177,9 +177,8 @@ public class OpcItem implements Cloneable {
       item.active = active;
       item.accessPath = accessPath;
       item.timeStamp = (timeStamp == null) ? null : (GregorianCalendar)timeStamp.clone();
-      item.itemValue = itemValue;
+      item.itemValue = (Variant)itemValue.clone();
       item.itemQuality = itemQuality;
-      item.dataType = dataType;
     }
     catch (CloneNotSupportedException e) {
       System.err.println(e);
@@ -198,7 +197,6 @@ public class OpcItem implements Cloneable {
     sb.append("timeStamp = " + (timeStamp == null ? "" : timeStamp.getTime()) + "; ");
     sb.append("itemValue = " + itemValue + "; ");
     sb.append("itemQuality = " + itemQuality + "; ");
-    sb.append("dataType = " + dataType + ")");
     
     return sb.toString();
   }

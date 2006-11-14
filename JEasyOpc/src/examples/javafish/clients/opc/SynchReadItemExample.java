@@ -9,10 +9,11 @@ import javafish.clients.opc.exception.ConnectivityException;
 import javafish.clients.opc.exception.SynchReadException;
 import javafish.clients.opc.exception.UnableAddGroupException;
 import javafish.clients.opc.exception.UnableAddItemException;
+import javafish.clients.opc.variant.Variant;
 
-public class SynchReadGroupExample {
+public class SynchReadItemExample {
   public static void main(String[] args) throws InterruptedException {
-    SynchReadGroupExample test = new SynchReadGroupExample();
+    SynchReadItemExample test = new SynchReadItemExample();
     
     try {
       JOpc.coInitialize();
@@ -22,17 +23,14 @@ public class SynchReadGroupExample {
     }
     
     JOpc jopc = new JOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
+
+    OpcItem item1 = new OpcItem("Random.ArrayOfReal8", true, "");
+    //OpcItem item1 = new OpcItem("Random.Real8", true, "");
+    //OpcItem item1 = new OpcItem("Random.String", true, "");
     
-    OpcItem item1 = new OpcItem("Random.Real8", true, "");
-    OpcItem item2 = new OpcItem("Random.Real8", true, "");
-    OpcItem item3 = new OpcItem("Random.Real8", true, "");
-    
-    OpcGroup group = new OpcGroup("group1", true, 10, 0.0f);
+    OpcGroup group = new OpcGroup("group1", true, 500, 0.0f);
     
     group.addItem(item1);
-    group.addItem(item2);
-    group.addItem(item3);
-    
     jopc.addGroup(group);
     
     try {
@@ -55,26 +53,27 @@ public class SynchReadGroupExample {
     }
     
     synchronized(test) {
-      test.wait(2000);
+      test.wait(50);
     }
     
     // Synchronous reading of group
-    int cycles = 100;
+    int cycles = 7;
     int acycle = 0;
     while (acycle++ < cycles) {
       synchronized(test) {
-        test.wait(50);
+        test.wait(1000);
       }
       
       try {
-        OpcGroup responseGroup = jopc.synchReadGroup(group);
-        System.out.println(responseGroup);
+        OpcItem responseItem = jopc.synchReadItem(group, item1);
+        System.out.println(responseItem);
+        System.out.println(Variant.getVariantName(responseItem.getDataType()) + ": " + responseItem.getValue());
       }
       catch (ComponentNotFoundException e1) {
         e1.printStackTrace();
       }
-      catch (SynchReadException e1) {
-        e1.printStackTrace();
+      catch (SynchReadException e) {
+        e.printStackTrace();
       }
     }
     

@@ -25,14 +25,14 @@ public class JEasyOpcExample implements OpcAsynchGroupListener {
     
     JEasyOpc jopc = new JEasyOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     
-    OpcItem item1 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item2 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item3 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item4 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item5 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item6 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item7 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item8 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item1 = new OpcItem("Random.Real8", true, "");
+    OpcItem item2 = new OpcItem("Random.Real8", true, "");
+    OpcItem item3 = new OpcItem("Random.Real8", true, "");
+    OpcItem item4 = new OpcItem("Random.Real8", true, "");
+    OpcItem item5 = new OpcItem("Random.Real8", true, "");
+    OpcItem item6 = new OpcItem("Random.Real8", true, "");
+    OpcItem item7 = new OpcItem("Random.Real8", true, "");
+    OpcItem item8 = new OpcItem("Random.Real8", true, "");
     
     OpcGroup group = new OpcGroup("group1", true, 2000, 0.0f);
     

@@ -12,6 +12,7 @@ import javafish.clients.opc.exception.UnableAddGroupException;
 import javafish.clients.opc.exception.UnableAddItemException;
 import javafish.clients.opc.exception.UnableRemoveGroupException;
 import javafish.clients.opc.exception.UnableRemoveItemException;
+import javafish.clients.opc.variant.Variant;
 
 public class SynchReadWriteExample {
 
@@ -29,8 +30,8 @@ public class SynchReadWriteExample {
       e1.printStackTrace();
     }
     
-    OpcItem item1 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item2 = new OpcItem("Bucket Brigade.Real4", true, "", 0);
+    OpcItem item1 = new OpcItem("Random.Real8", true, "");
+    OpcItem item2 = new OpcItem("Bucket Brigade.Real4", true, "");
     OpcGroup group = new OpcGroup("group1", true, 500, 0.0f);
     
     group.addItem(item1);
@@ -58,13 +59,15 @@ public class SynchReadWriteExample {
       }
       
       // synchronous writing
-      item2.setValue("101");
+      Variant varin = new Variant(101);
+      item2.setValue(varin);
       jopc.synchWriteItem(group, item2);
       
       Thread.sleep(2000);
       
       itemRead = jopc.synchReadItem(group, item2);
       System.out.println("WRITE ITEM IS: " + itemRead);
+      System.out.println("VALUE TYPE: " + Variant.getVariantName(itemRead.getDataType()));
       
       jopc.unregisterItem(group, item1);
       

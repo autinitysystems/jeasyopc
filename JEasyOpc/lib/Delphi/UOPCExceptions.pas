@@ -26,6 +26,7 @@ type // NATIVE CODE EXCEPTIONS
   GroupUpdateTimeException    = class(Exception); // change updateTime group error
   GroupActivityException      = class(Exception); // change activity of group
   ItemActivityException       = class(Exception); // change activity of item
+  VariantInternalException    = class(Exception); // variant error
 
 const // NATIVE CODE EXCEPTIONS TEXT
   // exceptions text
@@ -46,33 +47,35 @@ const // NATIVE CODE EXCEPTIONS TEXT
   GroupUpdateTimeExceptionText    = 'Update time of group cannot be changed.';
   GroupActivityExceptionText      = 'Activity of group cannot be changed.';
   ItemActivityExceptionText       = 'Activity of item cannot be changed.';
+  VariantInternalExceptionText    = 'Variant native exception.'; // variant error
 
 const // JAVA CODE EXCEPTIONS
   EXCPKG = 'javafish/clients/opc/exception/'; // standard exception package
 
   // java exceptions definition
-  SConnectivityException       = EXCPKG + 'ConnectivityException';
-  SCoInitializeException       = EXCPKG + 'CoInitializeException';
-  SCoUninitializeException     = EXCPKG + 'CoUninitializeException';
-  SHostException               = EXCPKG + 'HostException';
-  SNotFoundServersException    = EXCPKG + 'NotFoundServersException';
-  SUnableIBrowseException      = EXCPKG + 'UnableIBrowseException';
-  SUnableBrowseBranchException = EXCPKG + 'UnableBrowseBranchException';
-  SUnableBrowseLeafException   = EXCPKG + 'UnableBrowseLeafException';
-  SUnableAddGroupException     = EXCPKG + 'UnableAddGroupException';
-  SUnableAddItemException      = EXCPKG + 'UnableAddItemException';
-  SUnableRemoveGroupException  = EXCPKG + 'UnableRemoveGroupException';
-  SUnableRemoveItemException   = EXCPKG + 'UnableRemoveItemException';
-  SComponentNotFoundException  = EXCPKG + 'ComponentNotFoundException';
-  SSynchReadException          = EXCPKG + 'SynchReadException';
-  SSynchWriteException         = EXCPKG + 'SynchWriteException';
-  SAsynch10ReadException       = EXCPKG + 'Asynch10ReadException';
-  SAsynch20ReadException       = EXCPKG + 'Asynch20ReadException';
-  SAsynch10UnadviseException   = EXCPKG + 'Asynch10UnadviseException';
-  SAsynch20UnadviseException   = EXCPKG + 'Asynch20UnadviseException';
-  SGroupUpdateTimeException    = EXCPKG + 'GroupUpdateTimeException';
-  SGroupActivityException      = EXCPKG + 'GroupActivityException';
-  SItemActivityException       = EXCPKG + 'ItemActivityException';
+  SConnectivityException        = EXCPKG + 'ConnectivityException';
+  SCoInitializeException        = EXCPKG + 'CoInitializeException';
+  SCoUninitializeException      = EXCPKG + 'CoUninitializeException';
+  SHostException                = EXCPKG + 'HostException';
+  SNotFoundServersException     = EXCPKG + 'NotFoundServersException';
+  SUnableIBrowseException       = EXCPKG + 'UnableIBrowseException';
+  SUnableBrowseBranchException  = EXCPKG + 'UnableBrowseBranchException';
+  SUnableBrowseLeafException    = EXCPKG + 'UnableBrowseLeafException';
+  SUnableAddGroupException      = EXCPKG + 'UnableAddGroupException';
+  SUnableAddItemException       = EXCPKG + 'UnableAddItemException';
+  SUnableRemoveGroupException   = EXCPKG + 'UnableRemoveGroupException';
+  SUnableRemoveItemException    = EXCPKG + 'UnableRemoveItemException';
+  SComponentNotFoundException   = EXCPKG + 'ComponentNotFoundException';
+  SSynchReadException           = EXCPKG + 'SynchReadException';
+  SSynchWriteException          = EXCPKG + 'SynchWriteException';
+  SAsynch10ReadException        = EXCPKG + 'Asynch10ReadException';
+  SAsynch20ReadException        = EXCPKG + 'Asynch20ReadException';
+  SAsynch10UnadviseException    = EXCPKG + 'Asynch10UnadviseException';
+  SAsynch20UnadviseException    = EXCPKG + 'Asynch20UnadviseException';
+  SGroupUpdateTimeException     = EXCPKG + 'GroupUpdateTimeException';
+  SGroupActivityException       = EXCPKG + 'GroupActivityException';
+  SItemActivityException        = EXCPKG + 'ItemActivityException';
+  SVariantInternalException     = EXCPKG + 'VariantInternalException';
 
 implementation
 

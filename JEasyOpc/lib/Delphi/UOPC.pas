@@ -18,7 +18,7 @@ type
     FDownOPCGroup : EVENT_DownOPCGroup; // download group event (asynchronous mode)
     // implementation of EVENT_OPCItem
     procedure DownloadedItems(cHandle_Group, cHandle_Item : OPCHANDLE; Quality : Word;
-      IType : Word; DTime : TDateTime; Value : string);
+      IType : Word; DTime : TDateTime; Value : Variant);
     // implementation of EVENT_OPCGroup
     procedure DownloadedGroup(cHandle_Group : OPCHANDLE);
   public
@@ -398,14 +398,14 @@ function TOPC.synchReadItem(PEnv: PJNIEnv; group, item: JObject): JObject;
 var
   groupNative : TOPCGroup;
   itemNative  : TOPCItem;
-  value       : string;
+  value       : Variant;
   quality     : word;
   itm         : JObject;
 begin
   groupNative := getGroupByJavaCode(PEnv, group);
   itemNative  := groupNative.getItemByJavaCode(PEnv, item);
-
   HR := ReadOPCGroupItemValue(groupNative.GroupIf, itemNative.ItemHandle, value, quality);
+
   if Succeeded(HR)
   then begin
     itemNative.setTimeStamp(Now); // set actual timeStamp (System time)
@@ -465,7 +465,7 @@ end;
 //------------------------------------------------------------------------------
 // asynch event implementation
 procedure TOPC.DownloadedItems(cHandle_Group, cHandle_Item: OPCHANDLE; Quality,
-  IType: Word; DTime: TDateTime; Value: string);
+  IType: Word; DTime: TDateTime; Value: Variant);
 var item : TOPCItem;
 begin
   // set data to item

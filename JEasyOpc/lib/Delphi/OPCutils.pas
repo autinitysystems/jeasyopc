@@ -41,7 +41,7 @@ function GroupRemoveItem(GroupIf: IOPCItemMgt; ServerHandle: OPCHANDLE): HResult
 
 // synch read item value
 function ReadOPCGroupItemValue(GroupIf: IUnknown; ItemServerHandle: OPCHANDLE;
-           var ItemValue: string; var ItemQuality: Word): HResult;
+           var ItemValue: Variant; var ItemQuality: Word): HResult;
 
 // synch write item value
 function WriteOPCGroupItemValue(GroupIf: IUnknown; ItemServerHandle: OPCHANDLE;
@@ -267,7 +267,7 @@ end;
 
 // wrapper for IOPCSyncIO.Read (single item only)
 function ReadOPCGroupItemValue(GroupIf: IUnknown; ItemServerHandle: OPCHANDLE;
-          var ItemValue: string; var ItemQuality: Word): HResult;
+          var ItemValue: Variant; var ItemQuality: Word): HResult;
 var
   SyncIOIf: IOPCSyncIO;
   Errors: PResultList;
@@ -290,9 +290,9 @@ begin
         Result := Errors[0];
         CoTaskMemFree(Errors);
         try
-          ItemValue := VarToStr(ItemValues[0].vDataValue);
+          ItemValue := ItemValues[0].vDataValue;
         except
-          ItemValue := '';
+          ItemValue := VT_ERROR;
         end;
         ItemQuality := ItemValues[0].wQuality;
         VariantClear(ItemValues[0].vDataValue);
@@ -363,7 +363,7 @@ begin
       begin
         if Succeeded(Errors[i])
         then begin
-          TOPCItem(items[i]).setItemValue(VarToStr(ItemValues[i].vDataValue));
+          TOPCItem(items[i]).setItemValue(ItemValues[i].vDataValue);
           TOPCItem(items[i]).setItemQuality(ItemValues[i].wQuality);
           TOPCItem(items[i]).setTimeStamp(Now); // set actual timeStamp (System time)
         end // Error in communication (different from bad quality of item)

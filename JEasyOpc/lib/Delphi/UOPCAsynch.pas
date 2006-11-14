@@ -10,7 +10,7 @@ type
 
   // define events
   EVENT_OPCItem  = procedure (cHandle_Group, cHandle_Item : OPCHANDLE; Quality : Word;
-    IType : Word; DTime : TDateTime; Value : string) of object;
+    IType : Word; DTime : TDateTime; Value : Variant) of object;
   EVENT_OPCGroup = procedure (cHandle_Group : OPCHANDLE) of object;
   EVENT_DownOPCGroup = procedure (cHandle_Group : OPCHANDLE; DownOPCGroup : TOPCGroup) of object;
 
@@ -110,7 +110,7 @@ var
   Values      : POleVariantArray;
   Qualities   : PWORDARRAY;
   i           : Integer;
-  NewValue    : string;
+  NewValue    : Variant;
   STime       : TSystemTime;
   DT          : TDateTime;
   ATimes      : PFileTimeArray;
@@ -128,8 +128,9 @@ begin
   begin
     if Qualities[i] = OPC_QUALITY_GOOD then
     begin
-      // convert value to string type
-      NewValue := VarToStr(Values[i]);
+      // get Variant type
+      NewValue := Values[i];
+
       // convert timestamp to localtime
       Time := ATimes[I];
       FileTimeToLocalFileTime(Time,Time);
@@ -187,7 +188,7 @@ var
   DT           : TDateTime;
   I            : Integer;
   PStr         : PWideChar;
-  NewValue     : string;
+  NewValue     : Variant;
   WithTime     : Boolean;
   ClientHandle : OPCHANDLE;
   ClientGroup  : OPCHANDLE;
@@ -232,7 +233,9 @@ begin
         end;
         if Quality = OPC_QUALITY_GOOD then
         begin
+          NewValue := PV^;
           // this test assumes we're not dealing with array data
+          {
           if TVarData(PV^).VType <> VT_BSTR then
           begin
             NewValue := VarToStr(PV^); // convert to string
@@ -245,6 +248,7 @@ begin
             PStr := PWideChar(PChar(PV) + SizeOf(OleVariant) + 4);
             NewValue := WideString(PStr);
           end;
+          }
           if not WithTime then DT := Now;
         end;
         // call event of item

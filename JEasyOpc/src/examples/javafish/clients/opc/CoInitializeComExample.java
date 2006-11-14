@@ -21,8 +21,8 @@ public class CoInitializeComExample {
     JEasyOpc jopc = new JEasyOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     JEasyOpc jopc2 = new JEasyOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     
-    OpcItem item1 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item2 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item1 = new OpcItem("Random.Real8", true, "");
+    OpcItem item2 = new OpcItem("Random.Real8", true, "");
     
     OpcGroup group = new OpcGroup("group1", true, 2000, 0.0f);
     

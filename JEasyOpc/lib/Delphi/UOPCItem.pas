@@ -3,7 +3,7 @@ unit UOPCItem;
 interface
 
 uses
-  Classes, SysUtils, OPCDA, OPCtypes, JNI;
+  Classes, SysUtils, OPCDA, OPCtypes, JNI, UVariant, Variants, ActiveX;
 
 type
 
@@ -13,7 +13,7 @@ type
     active       : boolean;
     accessPath   : string;
     clientHandle : OPCHANDLE; // ID number of item
-    itemValue    : string;
+    itemValue    : Variant;
     itemQuality  : Word;
     timeStamp    : TDateTime;
     dataType     : TVarType;
@@ -23,6 +23,8 @@ type
     // constructor
     constructor create(PEnv : PJNIEnv; item : JObject); overload;
     constructor create(item : TOPCItem); overload;
+    // desctructor
+    destructor  Destroy; override;
     // update methods
     procedure update(PEnv : PJNIEnv; item : JObject);
     // commit methods
@@ -37,11 +39,11 @@ type
     function getAccessPath : string;
     function getClientHandle : OPCHANDLE;
     function getDataType : TVarType;
-    function getItemValue : string;
+    function getItemValue : Variant;
     function getItemQuality : Word;
     function getTimeStamp : TDateTime;
     // SET
-    procedure setItemValue(value : string);
+    procedure setItemValue(value : Variant);
     procedure setTimeStamp(timeStamp : TDateTime);
     procedure setItemQuality(quality : Word);
     procedure setActive(active : boolean);
@@ -67,15 +69,15 @@ begin
   active       := item.active;
   accessPath   := item.accessPath;
   clientHandle := item.clientHandle;
-  itemValue    := item.itemValue;
   itemQuality  := item.itemQuality;
   timeStamp    := item.timeStamp;
   dataType     := item.dataType;
   ItemHandle   := item.ItemHandle;
   ItemType     := item.ItemType;
+  VarCopy(itemValue, item.itemValue);
 end;
 
-function TOPCItem.getItemValue: string;
+function TOPCItem.getItemValue: Variant;
 begin
   Result := itemValue;
 end;
@@ -115,7 +117,7 @@ begin
   Result := active;
 end;
 
-procedure TOPCItem.setItemValue(value: string);
+procedure TOPCItem.setItemValue(value: Variant);
 begin
   itemValue := value;
 end;
@@ -151,6 +153,7 @@ var
   FID        : JFieldID;
   itemClass  : JClass;
   jstr       : JString;
+  jobj       : JObject;
 begin
   JVM := TJNIEnv.Create(PEnv);
 
@@ -172,13 +175,10 @@ begin
   self.accessPath := JVM.JStringToString(jstr);
 
   // attribute: itemValue
-  FID := JVM.GetFieldID(itemClass, 'itemValue', 'Ljava/lang/String;');
-  jstr := JVM.GetObjectField(item, FID);
-  self.itemValue := JVM.JStringToString(jstr);
+  FID := JVM.GetFieldID(itemClass, 'itemValue', 'Ljavafish/clients/opc/variant/Variant;');
 
-  // attribute: dataType
-  FID := JVM.GetFieldID(itemClass, 'dataType', 'I');
-  self.dataType := JVM.GetIntField(item, FID);
+  jobj := JVM.GetObjectField(item, FID);
+  self.itemValue := variantUpdate(PEnv, jobj);
 
   // attribute: active
   FID := JVM.GetFieldID(itemClass, 'active', 'Z');
@@ -195,6 +195,7 @@ var
   itemClass  : JClass;
   FID        : JFieldID;
   JDate      : JObject;
+  JVarin     : JObject;
   ClsDate    : JClass;
   MidDate    : JMethodID;
   ArgsDate   : array[0..5] of JValue;
@@ -205,8 +206,8 @@ begin
   itemClass := JVM.GetObjectClass(item);
 
   // attribute: itemValue
-  FID := JVM.GetFieldID(itemClass, 'itemValue', 'Ljava/lang/String;');
-  JVM.SetObjectField(item, FID, JVM.StringToJString(PAnsiChar(itemValue)));
+  FID := JVM.GetFieldID(itemClass, 'itemValue', 'Ljavafish/clients/opc/variant/Variant;');
+  JVM.SetObjectField(item, FID, variantCommit(PEnv, itemValue));
 
   // attribute: active
   FID := JVM.GetFieldID(itemClass, 'active', 'Z');
@@ -260,6 +261,12 @@ end;
 function TOPCItem.cloneNative: TOPCItem;
 begin
   Result := TOPCItem.create(self);
+end;
+
+destructor TOPCItem.Destroy;
+begin
+  VarClear(itemValue);
+  inherited;
 end;
 
 end.

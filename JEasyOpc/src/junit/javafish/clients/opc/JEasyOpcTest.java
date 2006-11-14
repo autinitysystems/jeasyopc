@@ -29,9 +29,9 @@ public class JEasyOpcTest extends TestCase {
         serverProps.getProperty("serverProgID"),
         serverProps.getProperty("clientHandle"));
     
-    item1 = new OpcItem(serverProps.getProperty("itemTag1"), true, "", 0);
-    item2 = new OpcItem(serverProps.getProperty("itemTag1"), true, "", 0);
-    itemWrite = new OpcItem(serverProps.getProperty("itemTagWrite1"), true, "", 0);
+    item1 = new OpcItem(serverProps.getProperty("itemTag1"), true, "");
+    item2 = new OpcItem(serverProps.getProperty("itemTag1"), true, "");
+    itemWrite = new OpcItem(serverProps.getProperty("itemTagWrite1"), true, "");
     group = new OpcGroup("group1", true, 100, 0.0f);
     group2 = new OpcGroup("group2", true, 2000, 0.0f);
     

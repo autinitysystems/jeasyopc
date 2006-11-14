@@ -127,13 +127,13 @@ public class JCustomOpcTest extends TestCase {
       }
     };
     
-    opc1.addOPCReportListener(testMessageListener);
+    opc1.addOpcReportListener(testMessageListener);
     opc1.debug("Debug test message");
     
     assertEquals(true, testMessageListener.messageWasSend);
     
     testMessageListener.messageWasSend = false;
-    opc1.removeOPCReportListener(testMessageListener);
+    opc1.removeOpcReportListener(testMessageListener);
     opc1.debug("Debug test message");
 
     assertEquals(false, testMessageListener.messageWasSend);

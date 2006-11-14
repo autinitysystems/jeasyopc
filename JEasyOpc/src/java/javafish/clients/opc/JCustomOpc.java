@@ -82,7 +82,7 @@ abstract public class JCustomOpc implements OpcReportListener {
     // create standard reporting listener
     useStandardReporting = Boolean.valueOf(props.getProperty("standardReport", "true"));
     if (useStandardReporting) {
-      addOPCReportListener(this);
+      addOpcReportListener(this);
     }
   }
   
@@ -246,7 +246,7 @@ abstract public class JCustomOpc implements OpcReportListener {
    * 
    * @param listener OpcReportListener
    */
-  public void addOPCReportListener(OpcReportListener listener) {
+  public void addOpcReportListener(OpcReportListener listener) {
     List list = Arrays.asList(reportListeners.getListenerList());
     if (list.contains(listener) == false) {
       reportListeners.add(OpcReportListener.class, listener);
@@ -258,7 +258,7 @@ abstract public class JCustomOpc implements OpcReportListener {
    * 
    * @param listener OpcReportListener
    */
-  public void removeOPCReportListener(OpcReportListener listener) {
+  public void removeOpcReportListener(OpcReportListener listener) {
     List list = Arrays.asList(reportListeners.getListenerList());
     if (list.contains(listener) == true) {
       reportListeners.remove(OpcReportListener.class, listener);

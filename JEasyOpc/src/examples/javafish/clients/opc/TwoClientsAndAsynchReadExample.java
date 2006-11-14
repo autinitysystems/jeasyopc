@@ -32,12 +32,12 @@ public class TwoClientsAndAsynchReadExample {
     JOpc jopc = new JOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
     JEasyOpc jopc2 = new JEasyOpc("localhost", "Matrikon.OPC.Simulation", "JOPC2");
     
-    OpcItem item1 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item2 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item1 = new OpcItem("Random.Real8", true, "");
+    OpcItem item2 = new OpcItem("Random.Real8", true, "");
     OpcGroup group = new OpcGroup("group1", true, 1000, 0.0f);
 
-    OpcItem item3 = new OpcItem("Random.Real8", true, "", 0);
-    OpcItem item4 = new OpcItem("Random.Real8", true, "", 0);
+    OpcItem item3 = new OpcItem("Random.Real8", true, "");
+    OpcItem item4 = new OpcItem("Random.Real8", true, "");
     OpcGroup group2 = new OpcGroup("group2", true, 2500, 0.0f);
     
     group.addItem(item1);

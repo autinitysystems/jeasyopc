@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, ActiveX, IdIcmpClient, UCustomOPC, OPCEnum, OPCDA,
-  OPCutils, Windows, OPCtypes, UOPCExceptions;
+  OPCutils, Windows, OPCtypes, UOPCExceptions, Variants;
 
 const
   WAITIME = 300;
@@ -180,13 +180,13 @@ var
   ItemName    : POleStr;
   ItemHandle  : OPCHANDLE;
   ItemType    : TVarType;
-  ItemValue   : string;
+  ItemValue   : Variant;
   ItemQuality : Word;
   GroupIf     : IOPCItemMgt;
   GroupHandle : OPCHANDLE;
   IHandles    : array of OPCHANDLE;
   i           : integer;
-  val         : string;
+  val         : Variant;
 begin
   Result := nil;
   // Define opc-group
@@ -246,7 +246,8 @@ begin
           Result[i] := Result[i] + '; ' + '---';
         end;
         // write value to Result
-        Result[i] := Result[i] + '; ' + val;
+        Result[i] := Result[i] + '; ' + VarToStr(val);
+        VarClear(val);
       end;
     end;
   end; // download values

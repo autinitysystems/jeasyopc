@@ -26,7 +26,8 @@ uses
   UOPCItem in 'UOPCItem.pas',
   UOPCExceptions in 'UOPCExceptions.pas',
   UOPCAsynch in 'UOPCAsynch.pas',
-  UOPCQueue in 'UOPCQueue.pas';
+  UOPCQueue in 'UOPCQueue.pas',
+  UVariant in 'UVariant.pas';
 
 const
   ID = 'id'; // signification of id client
@@ -306,8 +307,13 @@ end;
 procedure Java_javafish_clients_opc_JOpc_addNativeGroup(PEnv: PJNIEnv;
   Obj: JObject; group : JObject); stdcall;
 begin
-  // create native group representation and add to OPC instance
-  TOPC(aopc[GetInt(ID, PEnv, Obj)]).addGroup(TOPCGroup.create(PEnv, group));
+  try
+    // create native group representation and add to OPC instance
+    TOPC(aopc[GetInt(ID, PEnv, Obj)]).addGroup(TOPCGroup.create(PEnv, group));
+  except
+    on E:VariantInternalException do
+      throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -315,8 +321,13 @@ end;
 procedure Java_javafish_clients_opc_JOpc_updateNativeGroups(PEnv: PJNIEnv;
   Obj: JObject); stdcall;
 begin
-  // update native groups of opc-client from JAVA code
-  TOPC(aopc[GetInt(ID, PEnv, Obj)]).updateGroups(PEnv, Obj);
+  try
+    // update native groups of opc-client from JAVA code
+    TOPC(aopc[GetInt(ID, PEnv, Obj)]).updateGroups(PEnv, Obj);
+  except
+    on E:VariantInternalException do
+      throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -331,6 +342,8 @@ begin
       throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
     on E:SynchReadException do
       throwException(PEnv, SSynchReadException, PAnsiChar(E.Message));
+    on E:VariantInternalException do
+      throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
   end;
 end;
 
@@ -346,6 +359,8 @@ begin
       throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
     on E:SynchWriteException do
       throwException(PEnv, SSynchWriteException, PAnsiChar(E.Message));
+    on E:VariantInternalException do
+      throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
   end;
 end;
 
@@ -361,6 +376,8 @@ begin
       throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
     on E:SynchReadException do
       throwException(PEnv, SSynchReadException, PAnsiChar(E.Message));
+    on E:VariantInternalException do
+      throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
   end;
 end;
 
@@ -422,6 +439,8 @@ begin
       throwException(PEnv, SUnableAddGroupException, PAnsiChar(E.Message));
     on E:UnableAddItemException do
       throwException(PEnv, SUnableAddItemException, PAnsiChar(E.Message));
+    on E:VariantInternalException do
+      throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
   end;
 end;
 
@@ -481,6 +500,8 @@ begin
   except
     on E:UnableRemoveGroupException do
       throwException(PEnv, SUnableRemoveGroupException, PAnsiChar(E.Message));
+    on E:VariantInternalException do
+      throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
   end;
 end;
 
@@ -617,9 +638,17 @@ begin
       then break;
     end;
 
-    // clone and commit result group
-    Result := groupNative.clone(PEnv, group);
-    groupNative.commit(PEnv, Result);
+    try
+      // clone and commit result group
+      Result := groupNative.clone(PEnv, group);
+      groupNative.commit(PEnv, Result);
+    except
+      on E:VariantInternalException do
+      begin
+        throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
+        exit;
+      end;
+    end;
 
     // free memorym, important!
     JVM.free;
@@ -646,6 +675,8 @@ begin
       throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
     on E:GroupUpdateTimeException do
       throwException(PEnv, SGroupUpdateTimeException, PAnsiChar(E.Message));
+    on E:VariantInternalException do
+      throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
   end;
 end;
 
@@ -668,6 +699,8 @@ begin
       throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
     on E:GroupActivityException do
       throwException(PEnv, SGroupActivityException, PAnsiChar(E.Message));
+    on E:VariantInternalException do
+      throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
   end;
 end;
 
@@ -692,6 +725,8 @@ begin
       throwException(PEnv, SComponentNotFoundException, PAnsiChar(E.Message));
     on E:ItemActivityException do
       throwException(PEnv, SItemActivityException, PAnsiChar(E.Message));
+    on E:VariantInternalException do
+      throwException(PEnv, SVariantInternalException, PAnsiChar(E.Message));
   end;
 end;
 
