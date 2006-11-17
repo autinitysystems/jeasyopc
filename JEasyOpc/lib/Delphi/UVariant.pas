@@ -10,6 +10,8 @@ function variantCommit(PEnv: PJNIEnv; varin : Variant) : JObject;
 function variantUpdate(PEnv: PJNIEnv; varin : JObject) : Variant;
 // create java VariantList from Variant array
 function createVariantList(PEnv: PJNIEnv; varArray : Variant) : JObject;
+// create Variant array from java VariantList
+function createVariantArray(PEnv: PJNIEnv; variantList : JObject) : Variant;
 
 implementation
 
@@ -35,8 +37,8 @@ begin
      args[0].l := JVM.StringToJString(PAnsiChar(VarToStr(varin)));
    end;
    varSmallint: begin
-     msyntax := '(I)V';
-     args[0].i := varin;   end;
+     msyntax := '(S)V';
+     args[0].s := varin;   end;
    varInteger: begin
      msyntax := '(I)V';
      args[0].i := varin;   end;
@@ -136,7 +138,7 @@ end;
 function variantUpdate(PEnv: PJNIEnv; varin : JObject) : Variant;
 type
   types = (VINTEGER, VFLOAT, VDOUBLE, VSTRING, VEMPTY, VNULL, VBOOLEAN,
-           VVARIANT, VBYTE, VSHORT);
+           VVARIANT, VBYTE, VSHORT, VARRAY);
 var
   JVM        : TJNIEnv;
   Cls        : JClass;
@@ -146,6 +148,7 @@ var
   methodID   : string;
   output     : string;
   vtype      : types;
+  vtemp      : Variant;
 begin
   JVM := TJNIEnv.Create(PEnv);
 
@@ -164,11 +167,6 @@ begin
    end;
    VT_NULL: begin
      vtype := VNULL;
-   end;
-   VT_UI1: begin
-     methodID := 'getInteger';
-     output := '()I';
-     vtype := VINTEGER;
    end;
    VT_INT: begin
      methodID := 'getInteger';
@@ -222,26 +220,31 @@ begin
      output := '()Ljava/lang/String;';
      vtype := VSTRING;
    end;
-   VT_I4: begin
-     methodID := 'getInteger';
-     output := '()I';
-     vtype := VINTEGER;
-   end;
    VT_I1: begin
      methodID := 'getByte';
      output := '()B';
      vtype := VBYTE;
    end;
    VT_I2: begin
-     methodID := 'getByte';
+     methodID := 'getWord';
      output := '()S';
      vtype := VSHORT;
+   end;
+   VT_I4: begin
+     methodID := 'getInteger';
+     output := '()I';
+     vtype := VINTEGER;
    end;
    VT_I8: begin
      // not supported -> string
      methodID := 'getString';
      output := '()Ljava/lang/String;';
      vtype := VSTRING;
+   end;
+   VT_UI1: begin
+     methodID := 'getByte';
+     output := '()B';
+     vtype := VBYTE;
    end;
    VT_LPSTR: begin
      methodID := 'getString';
@@ -260,6 +263,14 @@ begin
    end;
   end;
 
+  // check array type
+  if (JVM.GetIntField(varin, FID) and varArray) = varArray
+  then begin
+    methodID := 'getArray';
+    output := '()Ljavafish/clients/opc/variant/VariantList;';
+    vtype := VARRAY;
+  end;
+
   // Get correct data method
   if (vtype <> VEMPTY) and (vtype <> VNULL)
   then begin
@@ -271,15 +282,29 @@ begin
   // call method and capture output
   case vtype of
     VINTEGER: Result := JVM.CallIntMethodA(varin, GetMid, nil);
-    VFLOAT:   Result := JVM.CallFloatMethodA(varin, GetMid, nil);
     VDOUBLE:  Result := JVM.CallDoubleMethodA(varin, GetMid, nil);
     VSTRING:  Result := JVM.JStringToString(JVM.CallObjectMethodA(varin, GetMid, nil));
     VBOOLEAN: Result := JVM.CallBooleanMethodA(varin, GetMid, nil);
-    VVARIANT: Result := variantUpdate(PEnv, JVM.CallObjectMethodA(varin, GetMid, nil));
-    VBYTE:    Result := JVM.CallByteMethodA(varin, GetMid, nil);
-    VSHORT:   Result := JVM.CallShortMethodA(varin, GetMid, nil);
     VEMPTY:   Result := VT_EMPTY;
     VNULL:    Result := VT_NULL;
+    VBYTE:    begin
+      vtemp  := JVM.CallByteMethodA(varin, GetMid, nil);
+      Result := VarAsType(vtemp, VT_UI1);
+    end;
+    VVARIANT: begin
+      Result := variantUpdate(PEnv, JVM.CallObjectMethodA(varin, GetMid, nil));
+    end;
+    VSHORT: begin
+      vtemp := JVM.CallShortMethodA(varin, GetMid, nil);
+      Result := VarAsType(vtemp, VT_I2);
+    end;
+    VFLOAT: begin
+      vtemp  := JVM.CallFloatMethodA(varin, GetMid, nil);
+      Result := VarAsType(vtemp, VT_R4);
+    end;
+    VARRAY: begin
+      Result := createVariantArray(PEnv, JVM.CallObjectMethodA(varin, GetMid, nil));
+    end;
   end;
 
   JVM.free;
@@ -331,6 +356,59 @@ begin
   Result := jlist;
 
   JVM.free;
+end;
+
+// create Variant array from java VariantList
+function createVariantArray(PEnv: PJNIEnv; variantList : JObject) : Variant;
+var
+  i            : integer;
+  JVM          : TJNIEnv;
+  Cls          : JClass;
+  ArrayMid     : JMethodID;
+  aitems       : JObjectArray;
+  itemsCount   : integer;
+  varin        : JObject;
+  varinNative  : Variant;
+  itemClass    : JClass;
+  firstElement : boolean;
+  varinArray   : Variant;
+begin
+  // create VariantList
+  JVM := TJNIEnv.Create(PEnv);
+  Cls := JVM.FindClass('Ljavafish/clients/opc/variant/VariantList;');
+  if Cls = nil
+  then raise VariantInternalException.Create('Class not found.');
+
+  // get method of array of variant
+  ArrayMid := JVM.GetMethodID(Cls, 'getVariantListAsArray',
+    '()[Ljavafish/clients/opc/variant/Variant;');
+  if ArrayMid = nil
+  then raise VariantInternalException.Create('Method not found.');
+
+  aitems := JArray(JVM.CallObjectMethodA(variantList, ArrayMid, nil));
+  itemsCount := JVM.GetArrayLength(aitems);
+  firstElement := true;
+
+  for i:=0 to itemsCount-1 do
+  begin
+    // get item from list (Variant instance)
+    varin := JVM.GetObjectArrayElement(aitems, i);
+    // create variant from java instance
+    varinNative := variantUpdate(PEnv, varin);
+    // store to the Variant array
+    if firstElement
+    then begin
+      varinArray := VarArrayCreate([0, itemsCount-1], VarType(varinNative));
+      firstElement := false;
+    end;
+    VarArrayPut(varinArray, varinNative, i);
+  end;
+  JVM.free;
+  
+  // return variant array or empty
+  if firstElement = false
+  then Result := varinArray
+  else Result := VT_EMPTY;
 end;
 
 end.

@@ -1,6 +1,7 @@
 package javafish.clients.opc;
 
 import javafish.clients.opc.browser.JOpcBrowserTest;
+import javafish.clients.opc.variant.VariantTest;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -19,6 +20,7 @@ public final class AllUnitTests {
         suite.addTest(new TestSuite(JOpcBrowserTest.class));
         suite.addTest(new TestSuite(JOpcTest.class));
         suite.addTest(new TestSuite(JEasyOpcTest.class));
+        suite.addTest(new TestSuite(VariantTest.class));
         
         return suite;
     }

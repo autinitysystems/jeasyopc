@@ -1,5 +1,6 @@
 package javafish.clients.opc.variant;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import javafish.clients.opc.exception.VariantTypeException;
@@ -19,8 +20,9 @@ import javafish.clients.opc.lang.Translate;
  * 
  * Implementation of <em>Variant</em> types => java data types
  */
-public class Variant extends VariantTypes implements Cloneable {
-  
+public class Variant extends VariantTypes implements Cloneable, Comparable, Serializable {
+  private static final long serialVersionUID = 205031141436955384L;
+
   /** Variant Value */
   protected Object value = null;
   
@@ -66,15 +68,6 @@ public class Variant extends VariantTypes implements Cloneable {
    */
   public Variant(int value) {
     setInteger(value);
-  }
-
-  /**
-   * Create new instance of Variant
-   * 
-   * @param value Date
-   */
-  public Variant(Date value) {
-    setDate(value);
   }
 
   /**
@@ -136,7 +129,7 @@ public class Variant extends VariantTypes implements Cloneable {
    * 
    * @param value String
    */
-  public void setString(String value) {
+  private void setString(String value) {
     this.value = value;
     variant_native = VT_BSTR;
   }
@@ -178,7 +171,7 @@ public class Variant extends VariantTypes implements Cloneable {
    * 
    * @param value double
    */
-  public void setDouble(double value) {
+  private void setDouble(double value) {
     this.value = new Double(value);
     variant_native = VT_R8;
   }
@@ -192,18 +185,27 @@ public class Variant extends VariantTypes implements Cloneable {
     switch (variant_native) {
       case VT_R8 :
         return ((Double)value).doubleValue();
+      case VT_R4 :
+        return ((Float)value).floatValue();
+      case VT_INT :
+        return ((Integer)value).intValue();
+      case VT_BOOL :
+        return ((Boolean)value).booleanValue() ? 1 : 0;
+      case VT_I1 :
+        return ((Byte)value).byteValue();
+      case VT_UI1 :
+        return ((Byte)value).byteValue();
       default :
         throw new VariantTypeException(Translate.getString("VARIANT_TYPE_EXCEPTION"));
     }
   }
-  
 
   /**
    * Set value (float)
    * 
    * @param value float
    */
-  public void setFloat(float value) {
+  private void setFloat(float value) {
     this.value = new Float(value);
     variant_native = VT_R4;
   }
@@ -217,6 +219,14 @@ public class Variant extends VariantTypes implements Cloneable {
     switch (variant_native) {
       case VT_R4 :
         return ((Float)value).floatValue();
+      case VT_INT :
+        return ((Integer)value).intValue();
+      case VT_BOOL :
+        return ((Boolean)value).booleanValue() ? 1 : 0;
+      case VT_I1 :
+        return ((Byte)value).byteValue();
+      case VT_UI1 :
+        return ((Byte)value).byteValue();
       default :
         throw new VariantTypeException(Translate.getString("VARIANT_TYPE_EXCEPTION"));
     }
@@ -227,7 +237,7 @@ public class Variant extends VariantTypes implements Cloneable {
    * 
    * @param value int
    */
-  public void setInteger(int value) {
+  private void setInteger(int value) {
     this.value = new Integer(value);
     variant_native = VT_INT;
   }
@@ -241,6 +251,12 @@ public class Variant extends VariantTypes implements Cloneable {
     switch (variant_native) {
       case VT_INT :
         return ((Integer)value).intValue();
+      case VT_BOOL :
+        return ((Boolean)value).booleanValue() ? 1 : 0;
+      case VT_I1 :
+        return ((Byte)value).byteValue();
+      case VT_UI1 :
+        return ((Byte)value).byteValue();
       default :
         throw new VariantTypeException(Translate.getString("VARIANT_TYPE_EXCEPTION"));
     }
@@ -251,7 +267,7 @@ public class Variant extends VariantTypes implements Cloneable {
    * 
    * @param value boolean
    */
-  public void setBoolean(boolean value) {
+  private void setBoolean(boolean value) {
     this.value = new Boolean(value);
     variant_native = VT_BOOL;
   }
@@ -263,7 +279,7 @@ public class Variant extends VariantTypes implements Cloneable {
    */
   public boolean getBoolean() {
     switch (variant_native) {
-      case VT_INT :
+      case VT_BOOL :
         return ((Boolean)value).booleanValue();
       default :
         throw new VariantTypeException(Translate.getString("VARIANT_TYPE_EXCEPTION"));
@@ -275,9 +291,9 @@ public class Variant extends VariantTypes implements Cloneable {
    * 
    * @param value byte
    */
-  public void setByte(byte value) {
+  private void setByte(byte value) {
     this.value = new Byte(value);
-    variant_native = VT_I1;
+    variant_native = VT_UI1;
   }
   
   /**
@@ -287,7 +303,7 @@ public class Variant extends VariantTypes implements Cloneable {
    */
   public byte getByte() {
     switch (variant_native) {
-      case VT_I1 :
+      case VT_UI1 :
         return ((Byte)value).byteValue();
       default :
         throw new VariantTypeException(Translate.getString("VARIANT_TYPE_EXCEPTION"));
@@ -299,7 +315,7 @@ public class Variant extends VariantTypes implements Cloneable {
    * 
    * @param value short
    */
-  public void setWord(short value) {
+  private void setWord(short value) {
     this.value = new Short(value);
     variant_native = VT_I2;
   }
@@ -319,38 +335,6 @@ public class Variant extends VariantTypes implements Cloneable {
   }
   
   /**
-   * Set value (Date)
-   * 
-   * @param value Date
-   */
-  public void setDate(Date value) {
-    this.value = value;
-    variant_native = VT_DATE;
-  }
-  
-  /**
-   * Get value (Date)
-   * 
-   * @return value Date
-   */
-  public Date getDate() {
-    switch (variant_native) {
-      case VT_DATE :
-        return (Date)value;
-      default :
-        throw new VariantTypeException(Translate.getString("VARIANT_TYPE_EXCEPTION"));
-    }
-  }
-  
-  /**
-   * Set null value
-   */
-  public void setEmpty() {
-    this.value = null;
-    variant_native = VT_EMPTY;
-  }
-  
-  /**
    * Check empty of variant instance
    * 
    * @return is empty, boolean
@@ -366,35 +350,11 @@ public class Variant extends VariantTypes implements Cloneable {
   }
   
   /**
-   * Set value (Variant)
-   * 
-   * @param value Variant
-   */
-  public void setVariant(Variant value) {
-    this.value = value;
-    variant_native = VT_VARIANT;
-  }
-  
-  /**
-   * Get value (Variant)
-   * 
-   * @return value (Variant)
-   */
-  public Variant getVariant() {
-    switch (variant_native) {
-      case VT_VARIANT :
-        return (Variant)value;
-      default :
-        throw new VariantTypeException(Translate.getString("VARIANT_TYPE_EXCEPTION"));
-    }
-  }
-  
-  /**
    * Set array (VT_ARRAY)
    * 
    * @param values VariantList
    */
-  public void setArray(VariantList values) {
+  private void setArray(VariantList values) {
     this.value = values;
     variant_native = values.getVarType();
   }
@@ -410,6 +370,61 @@ public class Variant extends VariantTypes implements Cloneable {
         return (VariantList)value;
       default :
         throw new VariantTypeException(Translate.getString("VARIANT_TYPE_EXCEPTION"));
+    }
+  }
+  
+  /**
+   * Set value (Variant)
+   * 
+   * @param value Variant
+   */
+  private void setVariant(Variant value) {
+    variant_native = value.getVariantType();
+    // set data
+    switch (variant_native) {
+      case VT_ARRAY:
+        setArray(value.getArray());
+        return;
+      case VT_BOOL:
+        setBoolean(value.getBoolean());
+        return;
+      case VT_LPSTR:
+      case VT_LPWSTR:
+      case VT_BSTR:
+        setString(value.getString());
+        break;
+      case VT_I1:
+        setByte(value.getByte());
+        return;
+      case VT_I2:
+        setWord(value.getWord());
+        return;
+      case VT_INT:
+        setInteger(value.getInteger());
+        return;
+      case VT_R4:
+        setFloat(value.getFloat());
+        return;
+      case VT_R8:
+        setDouble(value.getDouble());
+        return;
+      case VT_CY:
+      case VT_DECIMAL:
+      case VT_I4:
+      case VT_I8:
+      case VT_UI1:
+      case VT_UI2:
+      case VT_UI4:
+      case VT_UI8:
+      case VT_UINT:
+      case VT_BLOB:
+      case VT_BLOB_OBJECT:
+      case VT_NULL:
+      case VT_EMPTY:
+        // not supported
+        value = null;
+        variant_native = VT_EMPTY;
+        return;
     }
   }
   
@@ -437,24 +452,35 @@ public class Variant extends VariantTypes implements Cloneable {
     return var;
   }
   
-  // compare not yet
+  @SuppressWarnings("unchecked")
+  public int compareTo(Object o) {
+    if ((value instanceof Comparable) &&
+       (((Variant)o).value instanceof Comparable)) {
+      return ((Comparable)value).compareTo(((Variant)o).value);
+    } else {
+      throw new VariantTypeException(Translate.getString("VARIANT_TYPE_COMPARE_EXCEPTION"));
+    }
+  }
   
-  // equal not yet
-  
-  // hashcode not yet
-  
-  public static void main(String[] args) {
-    Variant var = new Variant();
-    VariantList vars = new VariantList(Variant.VT_R8);
-    var.setArray(vars);
-    System.out.println("TYPE: " + Variant.getVariantName(vars.getVarType()));
-    System.out.println(var);
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this)
+      return true;
+    if (obj instanceof Variant == false)
+      return false;
     
-    Variant varin = new Variant(2.5);
-    Variant varin2 = (Variant)varin.clone();
-    varin.setString("Ahoj");
-    System.out.println(varin);
-    System.out.println(varin2);
+    boolean sameValue = (value.equals(((Variant)obj).value));
+    boolean sameType  = (variant_native == ((Variant)obj).variant_native);
+    
+    return (sameValue && sameType);
+  }
+  
+  @Override
+  public int hashCode() {
+    int result = 17;
+    result = 37 * result + value.hashCode();
+    result = 37 * result + variant_native;
+    return result;
   }
   
 }

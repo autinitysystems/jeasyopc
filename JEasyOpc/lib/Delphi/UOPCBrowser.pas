@@ -177,16 +177,16 @@ end;
 function TBrowser.ShowValues(Path : string; PVarList: PTStringList;
   download : boolean) : TStringList;
 var
-  ItemName    : POleStr;
-  ItemHandle  : OPCHANDLE;
-  ItemType    : TVarType;
-  ItemValue   : Variant;
-  ItemQuality : Word;
-  GroupIf     : IOPCItemMgt;
-  GroupHandle : OPCHANDLE;
-  IHandles    : array of OPCHANDLE;
-  i           : integer;
-  val         : Variant;
+  ItemName     : POleStr;
+  ItemHandle   : OPCHANDLE;
+  ItemType     : TVarType;
+  ItemValue    : Variant;
+  ItemQuality  : Word;
+  GroupIf      : IOPCItemMgt;
+  GroupHandle  : OPCHANDLE;
+  IHandles     : array of OPCHANDLE;
+  i            : integer;
+  val          : string;
 begin
   Result := nil;
   // Define opc-group
@@ -215,7 +215,7 @@ begin
       IHandles[i] := ItemHandle;
       // prepare output structure: fullItemName, itemType, itemName
       Result.Add(PTStringList(PVarList)^.Strings[i] + '; ' +
-                 DataType(ItemType) + '; ' +
+                 VarTypeAsText(ItemType) + '; ' +
                  ItemName);
     end;
   end;
@@ -238,16 +238,19 @@ begin
         end;
         if Succeeded(HR)
         then begin
-          if (ItemQuality and OPC_QUALITY_MASK) = OPC_QUALITY_GOOD
-          then val := ItemValue
-          else val := 'bad quality';
+          if not VarIsArray(ItemValue)
+          then begin
+            if (ItemQuality and OPC_QUALITY_MASK) = OPC_QUALITY_GOOD
+            then val := VarToStr(ItemValue)
+            else val := 'bad quality';
+          end;  
+          VarClear(ItemValue);
         end
         else begin
           Result[i] := Result[i] + '; ' + '---';
         end;
         // write value to Result
-        Result[i] := Result[i] + '; ' + VarToStr(val);
-        VarClear(val);
+        Result[i] := Result[i] + '; ' + val;
       end;
     end;
   end; // download values

@@ -44,7 +44,7 @@ public class JOpcBrowser extends JCustomOpc {
    * @throws HostException
    * @throws NotFoundServersException
    */
-  public static String[] getOPCServers(String host) throws HostException, NotFoundServersException {
+  public static String[] getOpcServers(String host) throws HostException, NotFoundServersException {
     try {
       return getOpcServersNative(host);
     }
@@ -65,7 +65,7 @@ public class JOpcBrowser extends JCustomOpc {
    * @throws UnableBrowseBranchException
    * @throws UnableIBrowseException
    */
-  public String[] getOPCBranch(String branch) throws UnableBrowseBranchException, UnableIBrowseException {
+  public String[] getOpcBranch(String branch) throws UnableBrowseBranchException, UnableIBrowseException {
     try {
       return getOpcBranchNative(branch);
     }
@@ -92,7 +92,7 @@ public class JOpcBrowser extends JCustomOpc {
    * @throws UnableAddGroupException
    * @throws UnableAddItemException
    */
-  public String[] getOPCItems(String leaf, boolean download) throws UnableBrowseLeafException,
+  public String[] getOpcItems(String leaf, boolean download) throws UnableBrowseLeafException,
       UnableIBrowseException, UnableAddGroupException, UnableAddItemException{
     try {
       return getOpcItemsNative(leaf, download);

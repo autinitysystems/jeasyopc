@@ -23,4 +23,17 @@ public class VariantList extends ArrayList<Variant> {
   public int getVarType() {
     return varType;
   }
+  
+  /**
+   * Get variant list as array of Variant
+   * 
+   * @return variant array Variant[]
+   */
+  public Variant[] getVariantListAsArray() {
+    Variant[] arrayVarin = new Variant[size()];
+    for (int i = 0; i < arrayVarin.length; i++) {
+      arrayVarin[i] = (Variant)get(i);
+    }
+    return arrayVarin;
+  }
 }

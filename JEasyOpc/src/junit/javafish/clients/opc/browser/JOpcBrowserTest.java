@@ -1,5 +1,6 @@
 package javafish.clients.opc.browser;
 
+import java.util.Arrays;
 import java.util.Properties;
 
 import javafish.clients.opc.exception.CoInitializeException;
@@ -28,7 +29,7 @@ public class JOpcBrowserTest extends TestCase {
 
   public void testGetOPCServers() {
     try {
-      String[] servers = JOpcBrowser.getOPCServers(host);
+      String[] servers = JOpcBrowser.getOpcServers(host);
       if (servers == null || servers.length == 0) {
         fail("OPC Server has to exist on test-host: " + host);
       }
@@ -41,7 +42,7 @@ public class JOpcBrowserTest extends TestCase {
     }
     
     try {
-      JOpcBrowser.getOPCServers("noname");
+      JOpcBrowser.getOpcServers("noname");
     }
     catch (HostException e) {
       assertTrue(true);
@@ -68,7 +69,7 @@ public class JOpcBrowserTest extends TestCase {
         serverProps.getProperty("clientHandle") + "-Browser");
     try {
       jbrowser.connect();
-      String[] branches = jbrowser.getOPCBranch("");
+      String[] branches = jbrowser.getOpcBranch("");
       if (branches == null || branches.length == 0) {
         fail("Branches don't download from OPC-Server: " +
             serverProps.getProperty("serverProgID"));
@@ -109,7 +110,9 @@ public class JOpcBrowserTest extends TestCase {
       jbrowser.connect();
       
       String[] items =
-        jbrowser.getOPCItems(serverProps.getProperty("itemLeafTestName"), true);
+        jbrowser.getOpcItems(serverProps.getProperty("itemLeafTestName"), true);
+      
+      System.out.println(Arrays.asList(items));
       
       if (items == null || items.length == 0) {
         fail("Items don't download from OPC-Server: " +

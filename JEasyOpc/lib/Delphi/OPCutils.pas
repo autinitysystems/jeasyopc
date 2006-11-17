@@ -281,8 +281,7 @@ begin
   end;
   if SyncIOIf <> nil then
   begin
-    Result := SyncIOIf.Read(OPC_DS_CACHE, 1, @ItemServerHandle, ItemValues,
-                            Errors);
+    Result := SyncIOIf.Read(OPC_DS_CACHE, 1, @ItemServerHandle, ItemValues, Errors);
 
     if Succeeded(Result) then
     begin

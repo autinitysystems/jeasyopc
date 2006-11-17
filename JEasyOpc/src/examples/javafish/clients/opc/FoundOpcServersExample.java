@@ -13,7 +13,7 @@ public class FoundOpcServersExample {
    */
   public static void main(String[] args) {
     try {
-      String[] servers = JOpcBrowser.getOPCServers("localhost");
+      String[] servers = JOpcBrowser.getOpcServers("localhost");
       if (servers != null) {
         System.out.println(Arrays.asList(servers));
       } else {

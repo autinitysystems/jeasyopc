@@ -3,9 +3,9 @@ package javafish.clients.opc;
 import javafish.clients.opc.component.OpcGroup;
 import javafish.clients.opc.component.OpcItem;
 import javafish.clients.opc.exception.CoInitializeException;
+import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.ConnectivityException;
-import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.SynchReadException;
 import javafish.clients.opc.exception.SynchWriteException;
 import javafish.clients.opc.exception.UnableAddGroupException;
@@ -13,6 +13,7 @@ import javafish.clients.opc.exception.UnableAddItemException;
 import javafish.clients.opc.exception.UnableRemoveGroupException;
 import javafish.clients.opc.exception.UnableRemoveItemException;
 import javafish.clients.opc.variant.Variant;
+import javafish.clients.opc.variant.VariantList;
 
 public class SynchReadWriteExample {
 
@@ -31,7 +32,8 @@ public class SynchReadWriteExample {
     }
     
     OpcItem item1 = new OpcItem("Random.Real8", true, "");
-    OpcItem item2 = new OpcItem("Bucket Brigade.Real4", true, "");
+    //OpcItem item2 = new OpcItem("Bucket Brigade.Real4", true, "");
+    OpcItem item2 = new OpcItem("Bucket Brigade.ArrayOfReal8", true, "");
     OpcGroup group = new OpcGroup("group1", true, 500, 0.0f);
     
     group.addItem(item1);
@@ -58,14 +60,25 @@ public class SynchReadWriteExample {
         System.out.println(itemRead);
       }
       
-      // synchronous writing
-      Variant varin = new Variant(101);
+      // synchronous writing (example with array writing ;-)
+      // prepare array
+      VariantList list = new VariantList(Variant.VT_R8);
+      list.add(new Variant(1.0));
+      list.add(new Variant(2.0));
+      list.add(new Variant(3.0));
+      Variant varin = new Variant(list);
+      System.out.println("Original Variant type: " +
+          Variant.getVariantName(varin.getVariantType()) + ", " + varin);
       item2.setValue(varin);
+      
+      // write to opc-server
       jopc.synchWriteItem(group, item2);
       
       Thread.sleep(2000);
       
+      // read item from opc-server
       itemRead = jopc.synchReadItem(group, item2);
+      // show item and its variant type
       System.out.println("WRITE ITEM IS: " + itemRead);
       System.out.println("VALUE TYPE: " + Variant.getVariantName(itemRead.getDataType()));
       

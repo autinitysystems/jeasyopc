@@ -28,7 +28,7 @@ public class BrowserExample {
     JOpcBrowser jbrowser = new JOpcBrowser("localhost", "Matrikon.OPC.Simulation", "JOPCBrowser1");
     try {
       jbrowser.connect();
-      String[] branches = jbrowser.getOPCBranch("");
+      String[] branches = jbrowser.getOpcBranch("");
       System.out.println(Arrays.asList(branches));
     }
     catch (ConnectivityException e) {
@@ -42,7 +42,7 @@ public class BrowserExample {
     }
     
     try {
-      String[] items = jbrowser.getOPCItems("Simulation Items.Random", true);
+      String[] items = jbrowser.getOpcItems("Simulation Items.Random", true);
       if (items != null) {
         for (int i = 0; i < items.length; i++) {
           System.out.println(items[i]);
