@@ -1,11 +1,7 @@
 package javafish.clients.opc;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
-
-import javax.swing.event.EventListenerList;
 
 import javafish.clients.opc.asynch.AsynchEvent;
 import javafish.clients.opc.asynch.OpcAsynchGroupListener;
@@ -40,9 +36,6 @@ public class JOpc extends JCustomOpc implements Runnable {
   /* opc groups storage */
   protected LinkedHashMap<Integer, OpcGroup> groups;
   
-  /* asynchronous group event listeners */
-  protected EventListenerList asynchGroupListeners;
-  
   /* package counter */
   protected int idpkg = 0;
   
@@ -55,7 +48,6 @@ public class JOpc extends JCustomOpc implements Runnable {
    */
   public JOpc(String host, String serverProgID, String serverClientHandle) {
     super(host, serverProgID, serverClientHandle);
-    asynchGroupListeners = new EventListenerList();
     groups = new LinkedHashMap<Integer, OpcGroup>();
     thread = new Thread(this);
   }
@@ -198,36 +190,12 @@ public class JOpc extends JCustomOpc implements Runnable {
   }
   
   /**
-   * Add asynch-group listener
-   * 
-   * @param listener OpcReportListener
-   */
-  public void addAsynchGroupListener(OpcAsynchGroupListener listener) {
-    List list = Arrays.asList(asynchGroupListeners.getListenerList());
-    if (list.contains(listener) == false) {
-      asynchGroupListeners.add(OpcAsynchGroupListener.class, listener);
-    }
-  }
-
-  /**
-   * Remove asynch-group listener
-   * 
-   * @param listener OpcReportListener
-   */
-  public void removeAsynchGroupListener(OpcAsynchGroupListener listener) {
-    List list = Arrays.asList(asynchGroupListeners.getListenerList());
-    if (list.contains(listener) == true) {
-      asynchGroupListeners.remove(OpcAsynchGroupListener.class, listener);
-    }
-  }
-  
-  /**
    * Send opc-group in asynchronous mode (1.0, 2.0)
    * 
    * @param group OpcGroup
    */
   protected void sendOpcGroup(OpcGroup group) {
-    Object[] list = asynchGroupListeners.getListenerList();
+    Object[] list = group.getAsynchListeners().getListenerList();
     for (int i = 0; i < list.length; i += 2) {
       Class listenerClass = (Class)(list[i]);
       if (listenerClass == OpcAsynchGroupListener.class) {

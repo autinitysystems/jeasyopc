@@ -47,7 +47,7 @@ public class JEasyOpcExample implements OpcAsynchGroupListener {
     
     jopc.addGroup(group);
     
-    jopc.addAsynchGroupListener(test);
+    group.addAsynchListener(test);
     
     jopc.start();
     

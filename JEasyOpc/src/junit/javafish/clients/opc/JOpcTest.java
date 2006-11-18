@@ -146,10 +146,10 @@ public class JOpcTest extends TestCase {
         assertEquals(group.getGroupName(), groupName);
       }
     };
-    opc.addAsynchGroupListener(asynchListener);
-    opc.addAsynchGroupListener(asynchListener);
-    opc.removeAsynchGroupListener(asynchListener);
-    opc.removeAsynchGroupListener(asynchListener);
+    group.addAsynchListener(asynchListener);
+    group.addAsynchListener(asynchListener);
+    group.removeAsynchListener(asynchListener);
+    group.removeAsynchListener(asynchListener);
   }
 
   public void testRegisterGroup() {
@@ -694,7 +694,7 @@ public class JOpcTest extends TestCase {
     }
     
     AsynchListenerTest asynchTestListener = new AsynchListenerTest(); 
-    opc.addAsynchGroupListener(asynchTestListener);
+    group.addAsynchListener(asynchTestListener);
     
     try {
       Thread.sleep(2000);
@@ -824,7 +824,7 @@ public class JOpcTest extends TestCase {
     }
     
     AsynchListenerTest asynchTestListener = new AsynchListenerTest(); 
-    opc.addAsynchGroupListener(asynchTestListener);
+    group.addAsynchListener(asynchTestListener);
     
     try {
       Thread.sleep(2000);
@@ -913,7 +913,7 @@ public class JOpcTest extends TestCase {
     try {
       opc.registerGroups();
       AsynchListenerTest asynchTestListener = new AsynchListenerTest(); 
-      opc.addAsynchGroupListener(asynchTestListener);
+      group.addAsynchListener(asynchTestListener);
       try {
         Thread.sleep(2000);
       }

@@ -1,10 +1,15 @@
 package javafish.clients.opc.component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
+
+import javax.swing.event.EventListenerList;
 
 import javafish.clients.opc.JOpc;
+import javafish.clients.opc.asynch.OpcAsynchGroupListener;
 import javafish.clients.opc.exception.ItemExistsException;
 import javafish.clients.opc.lang.Translate;
 
@@ -30,6 +35,9 @@ public class OpcGroup implements Cloneable {
   /* percent of dead band */
   private float percentDeadBand;
   
+  /* asynchronous group event listeners */
+  protected EventListenerList asynchGroupListeners;
+  
   /**
    * Create new instance of OPC Group
    * 
@@ -40,6 +48,7 @@ public class OpcGroup implements Cloneable {
    */
   public OpcGroup(String groupName, boolean active, int updateRate, float percentDeadBand) {
     items = new LinkedHashMap<Integer, OpcItem>();
+    asynchGroupListeners = new EventListenerList();
     clientHandle = -1; // not assigned
     this.groupName = groupName;
     this.active = active;
@@ -193,6 +202,39 @@ public class OpcGroup implements Cloneable {
    */
   public OpcItem getItemByClientHandle(int clientHandle) {
     return items.get(new Integer(clientHandle));
+  }
+  
+  /**
+   * Add asynch-group listener
+   * 
+   * @param listener OpcReportListener
+   */
+  public void addAsynchListener(OpcAsynchGroupListener listener) {
+    List list = Arrays.asList(asynchGroupListeners.getListenerList());
+    if (list.contains(listener) == false) {
+      asynchGroupListeners.add(OpcAsynchGroupListener.class, listener);
+    }
+  }
+
+  /**
+   * Remove asynch-group listener
+   * 
+   * @param listener OpcReportListener
+   */
+  public void removeAsynchListener(OpcAsynchGroupListener listener) {
+    List list = Arrays.asList(asynchGroupListeners.getListenerList());
+    if (list.contains(listener) == true) {
+      asynchGroupListeners.remove(OpcAsynchGroupListener.class, listener);
+    }
+  }
+  
+  /**
+   * Get asynchronous group listeners list
+   * 
+   * @return listeners EventListenerList
+   */
+  public EventListenerList getAsynchListeners() {
+    return asynchGroupListeners;
   }
   
   /**
