@@ -74,21 +74,16 @@ begin
     IdIcmpClient.free;
   end;
   // find opc servers
-  CoInitialize(nil);
   SetLength(CATIDs, 2);
   CATIDs[0] := CATID_OPCDAServer20;
   CATIDs[1] := CATID_OPCDAServer30; // new version of servers
   OPCServerList := TOPCServerList.create(host, False, CATIDs);
   try
-    try
-      OPCServerList.Update; // run finding by OPCEnum
-      Result.addStrings(OPCServerList.Items);
-    except
-      on E: Exception do
-        raise NotFoundServersException.create(NotFoundServersExceptionText + host);
-    end
-  finally
-    CoUninitialize; // free COM environment
+    OPCServerList.Update; // run finding by OPCEnum
+    Result.addStrings(OPCServerList.Items);
+  except
+    on E: Exception do
+      raise NotFoundServersException.create(NotFoundServersExceptionText + host);
   end;
   if Result.Count = 0
   then raise NotFoundServersException.create(NotFoundServersExceptionText + host);
@@ -185,8 +180,9 @@ var
   GroupIf      : IOPCItemMgt;
   GroupHandle  : OPCHANDLE;
   IHandles     : array of OPCHANDLE;
-  i            : integer;
+  i,j          : integer;
   val          : string;
+  dimension    : integer;
 begin
   Result := nil;
   // Define opc-group
@@ -238,12 +234,23 @@ begin
         end;
         if Succeeded(HR)
         then begin
-          if not VarIsArray(ItemValue)
+          if (ItemQuality and OPC_QUALITY_MASK) = OPC_QUALITY_GOOD
           then begin
-            if (ItemQuality and OPC_QUALITY_MASK) = OPC_QUALITY_GOOD
+            if not VarIsArray(ItemValue)
             then val := VarToStr(ItemValue)
-            else val := 'bad quality';
-          end;  
+            else begin
+              dimension := VarArrayDimCount(ItemValue);
+              val := '[';
+              for j:=VarArrayLowBound(ItemValue, dimension)
+                  to VarArrayHighBound(ItemValue, dimension) do
+              begin
+                val := val + VarToStr(ItemValue[j]);
+                if (j < VarArrayHighBound(ItemValue, dimension))
+                then val := val + ',';
+              end;
+              val := val + ']';
+            end;
+          end else val := 'bad quality';
           VarClear(ItemValue);
         end
         else begin

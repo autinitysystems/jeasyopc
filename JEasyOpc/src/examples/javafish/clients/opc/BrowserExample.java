@@ -6,6 +6,8 @@ import javafish.clients.opc.browser.JOpcBrowser;
 import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ConnectivityException;
+import javafish.clients.opc.exception.HostException;
+import javafish.clients.opc.exception.NotFoundServersException;
 import javafish.clients.opc.exception.UnableAddGroupException;
 import javafish.clients.opc.exception.UnableAddItemException;
 import javafish.clients.opc.exception.UnableBrowseBranchException;
@@ -25,7 +27,20 @@ public class BrowserExample {
       e1.printStackTrace();
     }
     
+    // find opc-servers (OpcEnum interface)
+    try {
+      String[] opcServers = JOpcBrowser.getOpcServers("localhost");
+      System.out.println(Arrays.asList(opcServers));
+    }
+    catch (HostException e1) {
+      e1.printStackTrace();
+    }
+    catch (NotFoundServersException e1) {
+      e1.printStackTrace();
+    }
+    
     JOpcBrowser jbrowser = new JOpcBrowser("localhost", "Matrikon.OPC.Simulation", "JOPCBrowser1");
+    
     try {
       jbrowser.connect();
       String[] branches = jbrowser.getOpcBranch("");

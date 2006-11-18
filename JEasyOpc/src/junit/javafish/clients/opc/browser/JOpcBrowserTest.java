@@ -29,6 +29,13 @@ public class JOpcBrowserTest extends TestCase {
 
   public void testGetOPCServers() {
     try {
+      JOpcBrowser.coInitialize();
+    }
+    catch (CoInitializeException e1) {
+      fail(e1.getMessage());
+    }
+    
+    try {
       String[] servers = JOpcBrowser.getOpcServers(host);
       if (servers == null || servers.length == 0) {
         fail("OPC Server has to exist on test-host: " + host);
@@ -48,6 +55,14 @@ public class JOpcBrowserTest extends TestCase {
       assertTrue(true);
     }
     catch (NotFoundServersException e) {
+      fail(e.getMessage());
+    }
+    
+    // disconnect server
+    try {
+      JOpcBrowser.coUninitialize();
+    }
+    catch (CoUninitializeException e) {
       fail(e.getMessage());
     }
     
