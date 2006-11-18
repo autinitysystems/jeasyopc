@@ -2,7 +2,6 @@ package javafish.clients.opc;
 
 import javafish.clients.opc.component.OpcGroup;
 import javafish.clients.opc.component.OpcItem;
-import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.ConnectivityException;
@@ -15,12 +14,7 @@ public class SynchReadItemExample {
   public static void main(String[] args) throws InterruptedException {
     SynchReadItemExample test = new SynchReadItemExample();
     
-    try {
-      JOpc.coInitialize();
-    }
-    catch (CoInitializeException e1) {
-      e1.printStackTrace();
-    }
+    JOpc.coInitialize();
     
     JOpc jopc = new JOpc("localhost", "Matrikon.OPC.Simulation", "JOPC1");
 

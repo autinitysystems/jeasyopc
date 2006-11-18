@@ -5,7 +5,7 @@ package javafish.clients.opc.exception;
  * <p>
  * <i>NOTE:</i> Can be call on program exit 
  */
-public class CoUninitializeException extends Exception {
+public class CoUninitializeException extends OpcRuntimeException {
   private static final long serialVersionUID = -6676745171410580681L;
   
   public CoUninitializeException(String message) {

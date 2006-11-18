@@ -27,7 +27,7 @@ public class JOpcBrowserTest extends TestCase {
     host = serverProps.getProperty("host");
   }
 
-  public void testGetOPCServers() {
+  public void testGetOpcServers() {
     try {
       JOpcBrowser.coInitialize();
     }
@@ -70,7 +70,7 @@ public class JOpcBrowserTest extends TestCase {
     // Must exist computer without OPC-Servers.
   }
 
-  public void testGetOPCBranch() {
+  public void testGetOpcBranch() {
     try {
       JOpcBrowser.coInitialize();
     }
@@ -109,7 +109,7 @@ public class JOpcBrowserTest extends TestCase {
     }
   }
 
-  public void testGetOPCItems() {
+  public void testGetOpcItems() {
     try {
       JOpcBrowser.coInitialize();
     }

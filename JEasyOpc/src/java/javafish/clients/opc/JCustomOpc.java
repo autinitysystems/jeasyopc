@@ -48,7 +48,7 @@ abstract public class JCustomOpc implements OpcReportListener {
   protected final Logger logger = Logger.getLogger(getClass());
   
   /** properties file */
-  protected Properties props = PropertyLoader.loadProperties(JCustomOpc.class);
+  protected static Properties props;
 
   /** report event listeners */
   protected EventListenerList reportListeners = new EventListenerList();
@@ -57,8 +57,10 @@ abstract public class JCustomOpc implements OpcReportListener {
   private int id;
 
   static {
+    // load class properties
+    props = PropertyLoader.loadProperties(JCustomOpc.class);
     // load native library OPC Client
-    System.loadLibrary("lib/JCustomOpc");
+    System.loadLibrary(props.getProperty("library.path"));
   }
 
   /**
