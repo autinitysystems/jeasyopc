@@ -52,15 +52,15 @@ public class TwoClientsAndAsynchReadExample {
     try {
       jopc.connect();
       jopc2.connect();
-      jopc.debug("OPC client is connected...");
+      System.out.println("OPC client is connected...");
       
       jopc.registerGroups();
       jopc2.registerGroups();
-      jopc.debug("OPC groups are registered...");
+      System.out.println("OPC groups are registered...");
       
       jopc.asynch10Read(group);
       jopc2.asynch20Read(group2);
-      jopc.debug("OPC asynchronous reading is applied...");
+      System.out.println("OPC asynchronous reading is applied...");
       
       OpcGroup downGroup;
       OpcGroup downGroup2;
@@ -87,10 +87,10 @@ public class TwoClientsAndAsynchReadExample {
       
       jopc.asynch10Unadvise(group);
       jopc2.asynch20Unadvise(group2);
-      jopc.debug("OPC asynchronous reading is unadvise...");
+      System.out.println("OPC asynchronous reading is unadvise...");
       
       JOpc.coUninitialize();
-      jopc.debug("Program terminated...");
+      System.out.println("Program terminated...");
       
     }
     catch (ConnectivityException e) {

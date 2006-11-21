@@ -61,17 +61,17 @@ public class JEasyOpc extends JOpc {
       try {
         // connect to OPC-Server
         connect();
-        info(Translate.getString("JEASYOPC_CONNECTED"));
+        log.info(Translate.getString("JEASYOPC_CONNECTED"));
         
         // register groups on server
         registerGroups();
-        info(Translate.getString("JEASYOPC_GRP_REG"));
+        log.info(Translate.getString("JEASYOPC_GRP_REG"));
         
         // run asynchronous mode 2.0
         for (int i = 0; i < groups.size(); i++) {
           asynch20Read(getGroupByClientHandle(i));
         }
-        info(Translate.getString("JEASYOPC_ASYNCH20_START"));
+        log.info(Translate.getString("JEASYOPC_ASYNCH20_START"));
         
         // life cycle
         while (running) { 
@@ -94,42 +94,42 @@ public class JEasyOpc extends JOpc {
             wait(WAITIME);
           }
           catch (InterruptedException e) {
-            error(e);
+            log.error(e);
           }
         } // life cycle
         
       }
       catch (ConnectivityException e) {
-        error(e);
+        log.error(e);
         try {
           wait(CONNTIME); // try reconnect
         }
         catch (InterruptedException e1) {
-          error(e1);
+          log.error(e1);
         }
       }
       catch (Exception e) {
-        error(e);
+        log.error(e);
         try {
           wait(CONNTIME); // try reconnect
         }
         catch (InterruptedException e1) {
-          error(e1);
+          log.error(e1);
         }
       };
     }
     
     try { // remove groups
       unregisterGroups();
-      info(Translate.getString("JEASYOPC_GRP_UNREG"));
+      log.info(Translate.getString("JEASYOPC_GRP_UNREG"));
     }
     catch (UnableRemoveGroupException e) {
-      error(e);
+      log.error(e);
     }
     
     connected = false;
     running = false;
-    info(Translate.getString("JEASYOPC_DISCONNECTED"));
+    log.info(Translate.getString("JEASYOPC_DISCONNECTED"));
   }
 
 }

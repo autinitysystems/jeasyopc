@@ -1,24 +1,18 @@
 package javafish.clients.opc;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 import java.util.Properties;
 
 import javafish.clients.opc.browser.JOpcBrowser;
 import javafish.clients.opc.exception.CoInitializeException;
-import javafish.clients.opc.exception.ConnectivityException;
 import javafish.clients.opc.exception.CoUninitializeException;
+import javafish.clients.opc.exception.ConnectivityException;
 import javafish.clients.opc.lang.Translate;
 import javafish.clients.opc.property.PropertyLoader;
-import javafish.clients.opc.report.LogEvent;
-import javafish.clients.opc.report.LogMessage;
-import javafish.clients.opc.report.OpcReportListener;
 
 import javax.swing.event.EventListenerList;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * JCustomOpc Client
@@ -27,7 +21,7 @@ import org.apache.log4j.PropertyConfigurator;
  * @author arnal2@seznam.cz
  * @version 2.00/2006
  */
-abstract public class JCustomOpc implements OpcReportListener {
+abstract public class JCustomOpc {
   
   /** host server */
   protected String host;
@@ -44,8 +38,8 @@ abstract public class JCustomOpc implements OpcReportListener {
   /** counter of messages */
   protected int logPkg = 0;
   
-  /** log4j logger */
-  protected final Logger logger = Logger.getLogger(getClass());
+  /** common logger */
+  protected Log log = LogFactory.getLog(getClass());
   
   /** properties file */
   protected static Properties props;
@@ -75,17 +69,8 @@ abstract public class JCustomOpc implements OpcReportListener {
     this.serverProgID = serverProgID;
     this.serverClientHandle = serverClientHandle;
     
-    // init logger
-    PropertyConfigurator.configure(PropertyLoader.getDefaultLoggerProperties());
-    
     // create native child of CustomOpc client
     newInstance(getParentClass().getName(), host, serverProgID, serverClientHandle);
-    
-    // create standard reporting listener
-    useStandardReporting = Boolean.valueOf(props.getProperty("standardReport", "true"));
-    if (useStandardReporting) {
-      addOpcReportListener(this);
-    }
   }
   
   /**
@@ -232,144 +217,6 @@ abstract public class JCustomOpc implements OpcReportListener {
    */
   public String getServerProgID() {
     return serverProgID;
-  }
-
-  /**
-   * Usage of standard reporting
-   * 
-   * @return is used standard reporting (log4j), boolean
-   */
-  public boolean isUseStandardReporting() {
-    return useStandardReporting;
-  }
-
-  /**
-   * Add opc-report listener
-   * 
-   * @param listener OpcReportListener
-   */
-  public void addOpcReportListener(OpcReportListener listener) {
-    List list = Arrays.asList(reportListeners.getListenerList());
-    if (list.contains(listener) == false) {
-      reportListeners.add(OpcReportListener.class, listener);
-    }
-  }
-
-  /**
-   * Remove opc-report listener
-   * 
-   * @param listener OpcReportListener
-   */
-  public void removeOpcReportListener(OpcReportListener listener) {
-    List list = Arrays.asList(reportListeners.getListenerList());
-    if (list.contains(listener) == true) {
-      reportListeners.remove(OpcReportListener.class, listener);
-    }
-  }
-  
-  /**
-   * Send log message to listeners
-   * 
-   * @param LogMessage message
-   */
-  protected void sendLogMessage(LogMessage message) {
-    Object[] list = reportListeners.getListenerList();
-    for (int i = 0; i < list.length; i += 2) {
-      Class listenerClass = (Class)(list[i]);
-      if (listenerClass == OpcReportListener.class) {
-        OpcReportListener listener = (OpcReportListener)(list[i + 1]);
-        LogEvent event = new LogEvent(this, logPkg++, message);
-        listener.getLogEvent(event);
-      }
-    }
-  }
-  
-  /**
-   * Debug opc-log
-   * 
-   * @param message String
-   */
-  public void debug(String message) {
-    LogMessage log = new LogMessage(new Date(), LogMessage.DEBUG, message);
-    sendLogMessage(log);
-  }
-  
-  /**
-   * Info opc-log
-   * 
-   * @param message String
-   */
-  public void info(String message) {
-    LogMessage log = new LogMessage(new Date(), LogMessage.INFO, message);
-    sendLogMessage(log);
-  }
-  
-  /**
-   * Warning opc-log
-   * 
-   * @param message String
-   */
-  public void warn(String message) {
-    LogMessage log = new LogMessage(new Date(), LogMessage.WARNING, message);
-    sendLogMessage(log);
-  }
-  
-  /**
-   * Error opc-log
-   * 
-   * @param message String
-   */
-  public void error(String message) {
-    LogMessage log = new LogMessage(new Date(), LogMessage.ERROR, message);
-    sendLogMessage(log);
-  }
-  
-  /**
-   * Error opc-log
-   * 
-   * @param e Exception
-   */
-  public void error(Exception e) {
-    StringBuffer sb = new StringBuffer(e.getMessage() +
-        System.getProperty("line.separator"));
-    StackTraceElement[] elements = e.getStackTrace();
-    for (int i = 0; i < elements.length; i++) {
-      sb.append(elements[i]);
-      sb.append(System.getProperty("line.separator"));
-    }
-    LogMessage log = new LogMessage(new Date(), LogMessage.ERROR, sb.toString());
-    sendLogMessage(log);
-  }
-  
-  /**
-   * Fatal opc-log
-   * 
-   * @param message String
-   */
-  public void fatal(String message) {
-    LogMessage log = new LogMessage(new Date(), LogMessage.FATAL, message);
-    sendLogMessage(log);
-  }
-
-  public void getLogEvent(LogEvent event) {
-    // standard logging listener (log4j)
-    switch (event.getMessage().getLevel()) {
-      case LogMessage.DEBUG:
-        logger.debug(event.getMessage().getReport());
-        break;
-      case LogMessage.INFO:
-        logger.info(event.getMessage().getReport());
-        break;
-      case LogMessage.WARNING:
-        logger.warn(event.getMessage().getReport());
-        break;
-      case LogMessage.ERROR:
-        logger.error(event.getMessage().getReport());
-        break;
-      case LogMessage.FATAL:
-        logger.fatal(event.getMessage().getReport());
-        break;
-    }
   }
   
 }

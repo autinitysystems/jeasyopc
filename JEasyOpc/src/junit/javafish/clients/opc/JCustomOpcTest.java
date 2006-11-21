@@ -6,8 +6,6 @@ import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ConnectivityException;
 import javafish.clients.opc.property.PropertyLoader;
-import javafish.clients.opc.report.LogEvent;
-import javafish.clients.opc.report.LogMessage;
 import javafish.clients.opc.report.OpcReportListener;
 import junit.framework.TestCase;
 
@@ -115,30 +113,6 @@ public class JCustomOpcTest extends TestCase {
     assertEquals(serverProps.getProperty("serverProgID"), opc1.getServerProgID());
   }
 
-  public void testSendMessages() {
-    OPCReportListenerTester testMessageListener = new OPCReportListenerTester() {
-      public void getLogEvent(LogEvent event) {
-        messageWasSend = true;
-        if (event.getMessage().getLevel() == LogMessage.DEBUG) {
-          assertTrue(true);
-        } else {
-          fail("Bad debug message");          
-        }
-      }
-    };
-    
-    opc1.addOpcReportListener(testMessageListener);
-    opc1.debug("Debug test message");
-    
-    assertEquals(true, testMessageListener.messageWasSend);
-    
-    testMessageListener.messageWasSend = false;
-    opc1.removeOpcReportListener(testMessageListener);
-    opc1.debug("Debug test message");
-
-    assertEquals(false, testMessageListener.messageWasSend);
-  }
-  
   /**
    * Implementation of JCustomOPC for JUnit tests 
    */
