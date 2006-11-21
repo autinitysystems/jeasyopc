@@ -6,7 +6,6 @@ import javafish.clients.opc.exception.CoInitializeException;
 import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ConnectivityException;
 import javafish.clients.opc.property.PropertyLoader;
-import javafish.clients.opc.report.OpcReportListener;
 import junit.framework.TestCase;
 
 /**
@@ -123,13 +122,6 @@ public class JCustomOpcTest extends TestCase {
     }
   }
   
-  /**
-   * Implementation of OPCReportListener for JUnit send message test
-   */
-  abstract class OPCReportListenerTester implements OpcReportListener {
-    public boolean messageWasSend = false;
-  }  
-
 }
 
 
