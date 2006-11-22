@@ -1,5 +1,6 @@
 package javafish.clients.opc.component;
 
+import java.io.Serializable;
 import java.util.GregorianCalendar;
 
 import javafish.clients.opc.variant.Variant;
@@ -7,10 +8,11 @@ import javafish.clients.opc.variant.Variant;
 /**
  * OPC Item class
  */
-public class OpcItem implements Cloneable {
+public class OpcItem implements Cloneable, Serializable {
+  private static final long serialVersionUID = -4300978347532315219L;
   
   // ATTRIBUTES
-  
+
   /* client handle ID (do not modify) */
   private int clientHandle;
 
@@ -32,17 +34,15 @@ public class OpcItem implements Cloneable {
   /* quality of item */
   private boolean itemQuality;
   
-  public boolean isActive() {
-    return active;
-  }
-  
   /**
    * Create new instance of OPCItem
    * 
-   * @param itemName String
-   * @param active boolean
-   * @param accessPath String
-   * @param dataType int
+   * @param itemName String - specific Tag name of item
+   * @param active boolean - begin activity of item
+   * @param accessPath String - accessPath is the "how" for the server to get the
+   * data specified by the itemName (ItemID, the what). The client uses this function
+   * to identify the possible access paths for the specified ItemID (similary with namespaces).
+   * Not all Opc Serves support these access paths.
    */
   public OpcItem(String itemName, boolean active, String accessPath) {
     clientHandle = -1; // not assigned
@@ -54,7 +54,9 @@ public class OpcItem implements Cloneable {
   }
   
   /**
-   * Generate clientHandle by its owner
+   * Generate clientHandle by its owner.
+   * <p>
+   * It is internal method for generation of unique item ID.
    * 
    * @param group OpcGroup
    */
@@ -70,9 +72,22 @@ public class OpcItem implements Cloneable {
   public void setActive(boolean active) {
     this.active = active;
   }
+  
+  /**
+   * Get activity of OpcItem
+   * 
+   * @return is active, boolean
+   */
+  public boolean isActive() {
+    return active;
+  }
 
   /**
-   * Get quality of downloaded item
+   * Get quality of downloaded item.
+   * <p>
+   * The quality is very important flag. This flag has to be
+   * checked, because you have to handle only correct values.
+   * The item can have some values, but the quality has to be true. 
    * 
    * @return quality is OK, boolean
    */

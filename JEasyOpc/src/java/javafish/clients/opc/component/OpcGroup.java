@@ -1,5 +1,6 @@
 package javafish.clients.opc.component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -14,9 +15,11 @@ import javafish.clients.opc.exception.ItemExistsException;
 import javafish.clients.opc.lang.Translate;
 
 /**
- * OPC Group 
+ * OPC Group class
  */
-public class OpcGroup implements Cloneable {
+public class OpcGroup implements Cloneable, Serializable {
+  private static final long serialVersionUID = -3017247616714093407L;
+
   /* ID of group (do not modify) */
   private int clientHandle;
   
@@ -41,10 +44,26 @@ public class OpcGroup implements Cloneable {
   /**
    * Create new instance of OPC Group
    * 
-   * @param groupName String
-   * @param active boolean
-   * @param updateRate double
-   * @param percentDeadBand float
+   * @param groupName String (user identificatio name of group)
+   * @param active boolean - begin activity of group
+   * @param updateRate double - refresh time of group in milliseconds
+   * @param percentDeadBand float - see percentDeadBand definition:<br>
+   * <p>
+   * Deadband will only apply to items in the group that
+   * have a dwEUType of Analog available. If the dwEUType is Analog,
+   * then the EU Low and EU High values for the item can be used to
+   * calculate the range for the item. This range will be multiplied with
+   * the Deadband to generate an exception limit.<br>
+   * An exception is determined as follows:<br>
+   * <p>
+   * Exception if (absolute value of (last cached value - current value) > pPercentDeadband * (EU High - EU Low) )<br>
+   * <p>
+   * If the exception limit is exceeded, then the last cached value is updated with the new value
+   * and a notification will be sent to the IAdviseSink (if any). The pPercentDeadband is an optional
+   * behavior for the server. If the client does not specify this value on a server that does
+   * support the behavior, the default value of 0 (zero) will be assumed, and all value changes
+   * will update the CACHE. Note that the timestamp will be updated regardless of wether the
+   * cached value is updated.
    */
   public OpcGroup(String groupName, boolean active, int updateRate, float percentDeadBand) {
     items = new LinkedHashMap<Integer, OpcItem>();
@@ -57,7 +76,8 @@ public class OpcGroup implements Cloneable {
   }
   
   /**
-   * Generate clientHandle by its owner
+   * Generate clientHandle by its owner.
+   * It is internal support for control of OpcGroup ID (unique key).
    * 
    * @param opc JOpc
    */
@@ -66,7 +86,9 @@ public class OpcGroup implements Cloneable {
   }
   
   /**
-   * Generate new clientHandle for its item
+   * Generate new clientHandle for its item.
+   * <p>
+   * It is internal support for generation of unique items ID.
    * 
    * @return clientHandle int
    */

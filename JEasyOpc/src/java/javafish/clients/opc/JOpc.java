@@ -25,8 +25,25 @@ import javafish.clients.opc.exception.UnableRemoveItemException;
 import javafish.clients.opc.lang.Translate;
 
 /**
- * Java OPC class
- * implements OPCDA standard (2.0, 3.0) 
+ * <b>Java OPC class</b>
+ * <p>
+ * <i>implements OPCDA standard (2.0, 3.0)</i>
+ * <p>
+ * OPC is open connectivity in industrial automation and the enterprise systems
+ * that support the industry. Interoperability is assured through the creation and
+ * maintenance of non-proprietary open standards specifications.
+ * <p>
+ * The first OPC standard specification resulted from the collaboration of
+ * a number of leading worldwide automation suppliers working in cooperation
+ * with Microsoft. Originally based on Microsoft's OLE COM and DCOM technologies,
+ * the specification defined a standard set of objects, interfaces and methods
+ * for use in process control and manufacturing automation applications to facilitate
+ * interoperability.
+ * <p>
+ * The COM/DCOM technologies provided the framework for software products to be developed.
+ * There are now hundreds of OPC Data Access servers and clients.
+ * 
+ * @author arnal2@seznam.cz
  */
 public class JOpc extends JCustomOpc implements Runnable {
   
@@ -42,9 +59,9 @@ public class JOpc extends JCustomOpc implements Runnable {
   /**
    * Create new instance of OPC Client.
    * 
-   * @param host String 
-   * @param serverProgID String
-   * @param serverClientHandle String
+   * @param host - host computer
+   * @param serverProgID - OPC Server name
+   * @param serverClientHandle - user name for OPC Client
    */
   public JOpc(String host, String serverProgID, String serverClientHandle) {
     super(host, serverProgID, serverClientHandle);
@@ -114,6 +131,8 @@ public class JOpc extends JCustomOpc implements Runnable {
   
   /**
    * Generate new clientHandle for group
+   * <p>
+   * (Generation of unique group ID)
    * 
    * @return int clientHandle
    */
@@ -625,8 +644,8 @@ public class JOpc extends JCustomOpc implements Runnable {
   }
 
   public void run() {
-    // not implemented (possible in future)
-    // you can override this method
+    // not implemented
+    // you can override this method (see JEasyOpc example)
   }
 
 }

@@ -5,7 +5,8 @@ import java.util.Properties;
 
 /**
  * Properties loader
- * NOTE: Root of properties files has to be in a class path
+ * <p>
+ * <i>NOTE:</i>Root of properties files has to be in a class path
  */
 public class PropertyLoader {
 

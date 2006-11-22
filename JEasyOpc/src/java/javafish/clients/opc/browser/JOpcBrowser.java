@@ -11,15 +11,16 @@ import javafish.clients.opc.exception.UnableIBrowseException;
 import javafish.clients.opc.lang.Translate;
 
 /**
- * OPC browser: browses brances and items of opc-server. Uses OPCEnum to find opc-servers on specific host.
+ * OPC Browser: browses brances and items of OPC Server.
+ * Uses OPCEnum to find OPC Servers on a specific host.
  */
 public class JOpcBrowser extends JCustomOpc {
   
   /**
    * Create new opc-browser
    * 
-   * @param host String
-   * @param serverProgID String - opc-server full name
+   * @param host String - server / personal computer tcp/ip address (name)
+   * @param serverProgID String - OPC Server full name
    * @param serverClientHandle - user description of opc-browser
    */
   public JOpcBrowser(String host, String serverProgID, String serverClientHandle) {
@@ -39,8 +40,9 @@ public class JOpcBrowser extends JCustomOpc {
   /**
    * STATIC: Get OPC-Servers from host computer
    * 
-   * @param host String
-   * @return servers String[]
+   * @param host String - computer name (tcp/ip)
+   * @return servers String[] - returned array with names of OPC Servers
+   * 
    * @throws HostException
    * @throws NotFoundServersException
    */
@@ -62,6 +64,7 @@ public class JOpcBrowser extends JCustomOpc {
    * 
    * @param branch String
    * @return items of branch String[]
+   * 
    * @throws UnableBrowseBranchException
    * @throws UnableIBrowseException
    */

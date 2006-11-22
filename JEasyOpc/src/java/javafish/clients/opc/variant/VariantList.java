@@ -3,7 +3,7 @@ package javafish.clients.opc.variant;
 import java.util.ArrayList;
 
 /**
- * List of variants 
+ * ArrayList of variants 
  */
 public class VariantList extends ArrayList<Variant> {
   private static final long serialVersionUID = -3797571063094058671L;
@@ -11,6 +11,11 @@ public class VariantList extends ArrayList<Variant> {
   /** type of list */
   private int varType;
   
+  /**
+   * Create new instance of VariantList
+   * 
+   * @param varType Variant type of this list (Variant.xxx type)
+   */
   public VariantList(int varType) {
     this.varType = Variant.VT_ARRAY + (varType & Variant.VT_TYPEMASK);
   }

@@ -15,11 +15,25 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * JCustomOpc Client
- * abstract class
+ * JCustomOpc Client<br>
+ * <i>abstract class</i>
+ * <p>
+ * OPC is open connectivity in industrial automation and the enterprise systems
+ * that support the industry. Interoperability is assured through the creation and
+ * maintenance of non-proprietary open standards specifications.
+ * <p>
+ * The first OPC standard specification resulted from the collaboration of
+ * a number of leading worldwide automation suppliers working in cooperation
+ * with Microsoft. Originally based on Microsoft's OLE COM and DCOM technologies,
+ * the specification defined a standard set of objects, interfaces and methods
+ * for use in process control and manufacturing automation applications to facilitate
+ * interoperability.
+ * <p>
+ * The COM/DCOM technologies provided the framework for software products to be developed.
+ * There are now hundreds of OPC Data Access servers and clients.
  * 
  * @author arnal2@seznam.cz
- * @version 2.00/2006
+ * @version 2.02/2006
  */
 abstract public class JCustomOpc {
   
