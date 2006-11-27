@@ -27,9 +27,9 @@ public class JEasyOpc extends JOpc {
   /**
    * Create new JEasyOpc client
    * 
-   * @param host String
-   * @param serverProgID String
-   * @param serverClientHandle String
+   * @param host - host computer
+   * @param serverProgID - OPC Server name
+   * @param serverClientHandle - user name for OPC Client
    */
   public JEasyOpc(String host, String serverProgID, String serverClientHandle) {
     super(host, serverProgID, serverClientHandle);

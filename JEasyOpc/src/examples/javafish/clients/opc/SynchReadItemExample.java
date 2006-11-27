@@ -2,7 +2,6 @@ package javafish.clients.opc;
 
 import javafish.clients.opc.component.OpcGroup;
 import javafish.clients.opc.component.OpcItem;
-import javafish.clients.opc.exception.CoUninitializeException;
 import javafish.clients.opc.exception.ComponentNotFoundException;
 import javafish.clients.opc.exception.ConnectivityException;
 import javafish.clients.opc.exception.SynchReadException;
@@ -50,7 +49,7 @@ public class SynchReadItemExample {
       test.wait(50);
     }
     
-    // Synchronous reading of group
+    // Synchronous reading of item
     int cycles = 7;
     int acycle = 0;
     while (acycle++ < cycles) {
@@ -71,11 +70,6 @@ public class SynchReadItemExample {
       }
     }
     
-    try {
-      JOpc.coUninitialize();
-    }
-    catch (CoUninitializeException e) {
-      e.printStackTrace();
-    }
+    JOpc.coUninitialize();
   }
 }

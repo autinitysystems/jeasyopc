@@ -338,13 +338,6 @@ public class VariantTypes {
   *
   * <p>The valid Clipboard Format Tags are:</p>
   *
-  * <ul>
-  *  <li>{@link Thumbnail#CFTAG_WINDOWS}</li>
-  *  <li>{@link Thumbnail#CFTAG_MACINTOSH}</li>
-  *  <li>{@link Thumbnail#CFTAG_NODATA}</li>
-  *  <li>{@link Thumbnail#CFTAG_FMTID}</li>
-  * </ul>
-  *
   * <pre>typedef struct tagCLIPDATA {
   * // cbSize is the size of the buffer pointed to
   * // by pClipData, plus sizeof(ulClipFmt)
