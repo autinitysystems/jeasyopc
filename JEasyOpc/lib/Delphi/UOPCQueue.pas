@@ -89,7 +89,8 @@ end;
 
 destructor TElement.destroy;
 begin
-  data.free;
+  if Assigned(data)
+  then data.free;
   inherited;
 end;
 

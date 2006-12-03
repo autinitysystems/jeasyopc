@@ -3,7 +3,8 @@ unit UOPCGroup;
 interface
 
 uses
-  Classes, Windows, SysUtils, OPCtypes, OPCDA, UOPCItem, JNI, UOPCExceptions;
+  Classes, Windows, SysUtils, OPCtypes, OPCDA, UOPCItem, JNI, UOPCExceptions,
+  ActiveX;
 
 type
 
@@ -22,7 +23,7 @@ type
     constructor create(PEnv: PJNIEnv; group: JObject); overload;
     constructor create(group : TOPCGroup); overload;
     // desctructor
-    destructor  Destroy; override;
+    destructor Destroy; override;
     // update methods
     procedure update(PEnv: PJNIEnv; group: JObject); overload; // update from OPC groups
     // commit methods

@@ -113,6 +113,15 @@ public class OpcGroup implements Cloneable, Serializable {
   public void setActive(boolean active) {
     this.active = active;
   }
+  
+  /**
+   * Get count of items in the group
+   * 
+   * @return coutn int
+   */
+  public int getItemCount() {
+    return items.size();
+  }
 
   /**
    * Get items as array list

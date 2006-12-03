@@ -16,7 +16,6 @@ type
     host               : string;           // network host
     serverProgID       : string;           // OPC server name: ProgID
     serverClientHandle : string;           // OPC Client Handle
-    ppServerStatus     : POPCSERVERSTATUS; // server status
     HR                 : HResult;          // COM results
     // COM object of OPC server
     ServerIf           : IOPCServer;       // server information
@@ -72,9 +71,12 @@ begin
 end;
 
 function TCustomOPC.getServerStatus : boolean;
+var ppServerStatus : POPCSERVERSTATUS; // server status
 begin
   try
-    Result := Succeeded(ServerIf.getStatus(ppServerStatus))
+    Result := Succeeded(ServerIf.getStatus(ppServerStatus));
+    CoTaskMemFree(ppServerStatus.szVendorInfo);
+    CoTaskMemFree(ppServerStatus);
   except
     on E:Exception do Result := false;
   end;

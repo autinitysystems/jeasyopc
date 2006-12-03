@@ -642,6 +642,7 @@ begin
       // clone and commit result group
       Result := groupNative.clone(PEnv, group);
       groupNative.commit(PEnv, Result);
+      //groupNative.Free;
     except
       on E:VariantInternalException do
       begin
@@ -650,7 +651,7 @@ begin
       end;
     end;
 
-    // free memorym, important!
+    // free memory, important!
     JVM.free;
     element.free;
   end;

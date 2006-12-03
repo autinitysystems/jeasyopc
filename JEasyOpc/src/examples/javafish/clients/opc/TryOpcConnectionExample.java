@@ -16,7 +16,7 @@ public class TryOpcConnectionExample {
 
       jopc.connect();
       while (true) {
-        Thread.sleep(3000);
+        Thread.sleep(200);
         System.out.println("Client is connected: " + jopc.ping());
         iter++;
         if (iter == 5) {
