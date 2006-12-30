@@ -73,23 +73,23 @@ public class JOpc extends JCustomOpc implements Runnable {
   // NATIVE CODE
   ////////////////
   
-  private native void addNativeGroup(OpcGroup group);
+  synchronized private native void addNativeGroup(OpcGroup group);
   
-  private native void updateNativeGroups();
+  synchronized private native void updateNativeGroups();
   
-  private native void registerGroupNative(OpcGroup group)
+  synchronized private native void registerGroupNative(OpcGroup group)
     throws ComponentNotFoundException, UnableAddGroupException; 
   
-  private native void registerItemNative(OpcGroup group, OpcItem item)
+  synchronized private native void registerItemNative(OpcGroup group, OpcItem item)
     throws ComponentNotFoundException, UnableAddItemException;
   
   private native void registerGroupsNative()
     throws UnableAddGroupException, UnableAddItemException;
   
-  private native void unregisterGroupNative(OpcGroup group)
+  synchronized private native void unregisterGroupNative(OpcGroup group)
     throws ComponentNotFoundException, UnableRemoveGroupException;
   
-  private native void unregisterItemNative(OpcGroup group, OpcItem item)
+  synchronized private native void unregisterItemNative(OpcGroup group, OpcItem item)
     throws ComponentNotFoundException, UnableRemoveItemException;
   
   private native void unregisterGroupsNative()
@@ -118,13 +118,13 @@ public class JOpc extends JCustomOpc implements Runnable {
   
   private native OpcGroup getDownloadGroupNative();
   
-  private native void setGroupUpdateTimeNative(OpcGroup group, int updateTime)
+  synchronized private native void setGroupUpdateTimeNative(OpcGroup group, int updateTime)
     throws ComponentNotFoundException, GroupUpdateTimeException;
   
-  private native void setGroupActivityNative(OpcGroup group, boolean active)
+  synchronized private native void setGroupActivityNative(OpcGroup group, boolean active)
     throws ComponentNotFoundException, GroupActivityException;
   
-  private native void setItemActivityNative(OpcGroup group, OpcItem item, boolean active)
+  synchronized private native void setItemActivityNative(OpcGroup group, OpcItem item, boolean active)
     throws ComponentNotFoundException, ItemActivityException;
   
   ////////////////////////////////////////////////////////////////////////

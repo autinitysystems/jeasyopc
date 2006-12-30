@@ -33,7 +33,7 @@ import org.apache.commons.logging.LogFactory;
  * There are now hundreds of OPC Data Access servers and clients.
  * 
  * @author arnal2@seznam.cz
- * @version 2.02/2006
+ * @version 2.3.1/2006
  */
 abstract public class JCustomOpc {
   
@@ -113,7 +113,7 @@ abstract public class JCustomOpc {
    * @param serverProgID String
    * @param serverClientHandle String
    */
-  private native void newInstance(String className, String host,
+  synchronized private native void newInstance(String className, String host,
       String serverProgID, String serverClientHandle);
   
   /**
