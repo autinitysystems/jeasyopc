@@ -108,6 +108,8 @@ procedure Java_javafish_clients_opc_JCustomOpc_coInitializeNative(PEnv: PJNIEnv;
   Obj: JObject); stdcall;
 begin
   try
+    // enable MULTI THREAD support
+    IsMultiThread := True;
     // among other things, this call makes sure that COM is initialized
     Application.Initialize;
     CoInitializeEx(nil, COINIT_MULTITHREADED);

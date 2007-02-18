@@ -12,6 +12,9 @@ public class FoundOpcServersExample {
    * @param args
    */
   public static void main(String[] args) {
+    // init COM components
+    JOpcBrowser.coInitialize();
+    
     try {
       String[] servers = JOpcBrowser.getOpcServers("localhost");
       if (servers != null) {
@@ -26,6 +29,9 @@ public class FoundOpcServersExample {
     catch (NotFoundServersException e) {
       e.printStackTrace();
     }
+    
+    // uninitialize COM components
+    JOpcBrowser.coUninitialize();
   }
 
 }
