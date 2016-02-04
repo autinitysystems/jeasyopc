@@ -1,5 +1,6 @@
 package javafish.clients.opc;
 
+import java.io.File;
 import java.util.Properties;
 
 import javafish.clients.opc.browser.JOpcBrowser;
@@ -63,12 +64,28 @@ abstract public class JCustomOpc {
   
   /** important: specify OPC object in dll-library (not modify) */
   private int id;
-
+  private static String libname;
+  static boolean libExists(String filename){
+	  File f=new File(filename);
+	  return f.exists();
+	  
+  }
   static {
     // load class properties
     props = PropertyLoader.loadProperties(JCustomOpc.class);
     // load native library OPC Client
-    System.loadLibrary(props.getProperty("library.path"));
+    
+    libname=props.getProperty("library.path");
+    if(libname==null || !libExists(libname+".dll")){
+    	libname="lib/JCustomIOC";
+    	if(!libExists(libname+".dll")){
+    		libname="./JCustomIOC";
+    		if(!libExists(libname+".dll")){
+    			libname="JCustomOPC";
+    		}
+    	}
+    }
+    System.loadLibrary(libname);
   }
 
   /**
